@@ -1,0 +1,3801 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoQuiz Futurista - Plataforma de Aprendizaje Interactiva</title>
+    <style>
+        /* ===== VARIABLES GLOBALES ===== */
+        :root {
+            --primary-color: #00ffcc;
+            --secondary-color: #ff00ff;
+            --accent-color: #ffff00;
+            --bg-dark: #0a0a0f;
+            --bg-medium: #1a1a2e;
+            --bg-light: #16213e;
+            --text-light: #ffffff;
+            --text-muted: #a0a0a0;
+            --error-color: #ff3366;
+            --success-color: #00ff88;
+            --warning-color: #ffaa00;
+            --border-radius: 15px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ===== RESET Y BASE ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-medium) 50%, var(--bg-light) 100%);
+            color: var(--text-light);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* ===== ANIMACIÓN DE FONDO ===== */
+        .bg-animation {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) translateX(0);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100px);
+                opacity: 0;
+            }
+        }
+
+        /* ===== HEADER ===== */
+        header {
+            text-align: center;
+            padding: 2rem 1rem;
+            background: rgba(26, 26, 46, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid var(--primary-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+            animation: scan 3s infinite;
+        }
+
+        @keyframes scan {
+            to {
+                left: 100%;
+            }
+        }
+
+        h1 {
+            font-size: clamp(2rem, 5vw, 3rem);
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-bottom: 0.5rem;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                text-shadow: 0 0 10px var(--primary-color);
+            }
+            to {
+                text-shadow: 0 0 20px var(--primary-color), 0 0 30px var(--secondary-color);
+            }
+        }
+
+        .subtitle {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        /* ===== CONTENEDOR PRINCIPAL ===== */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+
+        /* ===== PANEL DE ESTADÍSTICAS ===== */
+        .stats-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(26, 26, 46, 0.8);
+            border: 1px solid var(--primary-color);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 255, 204, 0.3);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            text-shadow: 0 0 10px currentColor;
+        }
+
+        .stat-label {
+            color: var(--text-light);
+            opacity: 0.8;
+            margin-top: 0.5rem;
+        }
+
+        /* ===== LEADERBOARD ===== */
+        .leaderboard {
+            background: rgba(26, 26, 46, 0.8);
+            border: 2px solid var(--primary-color);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            overflow-x: auto;
+        }
+
+        .leaderboard h2 {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-size: 2rem;
+        }
+
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        .leaderboard-table th {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: var(--bg-dark);
+            padding: 1rem;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .leaderboard-table td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .leaderboard-table tr:hover {
+            background: rgba(0, 255, 204, 0.1);
+        }
+
+        .rank-medal {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            font-weight: bold;
+            margin-right: 1rem;
+        }
+
+        .rank-1 { background: linear-gradient(45deg, #ffd700, #ffed4e); color: #333; }
+        .rank-2 { background: linear-gradient(45deg, #c0c0c0, #e8e8e8); color: #333; }
+        .rank-3 { background: linear-gradient(45deg, #cd7f32, #e8a85c); color: #333; }
+
+        /* ===== PANELES DE INFORMACIÓN ===== */
+        .info-panel {
+            background: rgba(26, 26, 46, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--primary-color);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .info-panel::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color), var(--accent-color));
+            border-radius: var(--border-radius);
+            opacity: 0.5;
+            z-index: -1;
+            animation: borderRotate 3s linear infinite;
+        }
+
+        @keyframes borderRotate {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ===== QUIZ CONTAINER ===== */
+        .quiz-container {
+            background: rgba(26, 26, 46, 0.8);
+            backdrop-filter: blur(10px);
+            border: 2px solid var(--primary-color);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            display: none;
+            animation: slideIn 0.5s ease;
+        }
+
+        .quiz-container.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--primary-color);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .question-number {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .progress-bar {
+            flex: 1;
+            min-width: 200px;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            margin: 0 2rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 5px;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 10px var(--primary-color);
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+            color: var(--text-light);
+        }
+
+        .options {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .option {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            padding: 1.2rem;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: radial-gradient(circle, var(--primary-color), transparent);
+            transition: var(--transition);
+            transform: translate(-50%, -50%);
+        }
+
+        .option:hover {
+            background: rgba(0, 255, 204, 0.1);
+            border-color: var(--primary-color);
+            transform: translateX(10px);
+        }
+
+        .option:hover::before {
+            width: 100%;
+            height: 100%;
+        }
+
+        .option.selected {
+            background: rgba(0, 255, 204, 0.2);
+            border-color: var(--primary-color);
+        }
+
+        .option.correct {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: var(--success-color);
+            animation: correctPulse 0.5s ease;
+        }
+
+        .option.incorrect {
+            background: rgba(255, 51, 102, 0.2);
+            border-color: var(--error-color);
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes correctPulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% {
+                transform: translateX(0);
+            }
+            25% {
+                transform: translateX(-10px);
+            }
+            75% {
+                transform: translateX(10px);
+            }
+        }
+
+        .option-letter {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            background: var(--primary-color);
+            color: var(--bg-dark);
+            border-radius: 50%;
+            font-weight: bold;
+            margin-right: 1rem;
+        }
+
+        /* ===== BOTONES ===== */
+        .btn {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: var(--bg-dark);
+            border: none;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: var(--transition);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            overflow: hidden;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 255, 204, 0.5);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        /* ===== PANTALLAS ===== */
+        .screen {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .start-screen {
+            text-align: center;
+            padding: 3rem 1rem;
+        }
+
+        .start-screen h2 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            color: var(--primary-color);
+        }
+
+        .description {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .results-screen {
+            text-align: center;
+            padding: 3rem 1rem;
+        }
+
+        .final-score {
+            font-size: clamp(2.5rem, 8vw, 4rem);
+            font-weight: bold;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 2rem 0;
+        }
+
+        .performance-badge {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: var(--bg-dark);
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            animation: bounce 1s ease infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        /* ===== MODAL ===== */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 2rem;
+        }
+
+        .modal-content {
+            background: var(--bg-medium);
+            border: 2px solid var(--primary-color);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            max-width: 900px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalSlide 0.3s ease;
+        }
+
+        @keyframes modalSlide {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            color: var(--primary-color);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: var(--error-color);
+            font-size: 2rem;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .close-modal:hover {
+            transform: rotate(90deg);
+            background: rgba(255, 51, 102, 0.1);
+        }
+
+        /* ===== CONCEPT TABS ===== */
+        .concept-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+            flex-wrap: wrap;
+        }
+
+        .concept-tab {
+            padding: 1rem 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: var(--transition);
+            border-radius: 10px 10px 0 0;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .concept-tab:hover {
+            background: rgba(0, 255, 204, 0.1);
+        }
+
+        .concept-tab.active {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: var(--bg-dark);
+        }
+
+        .concept-content {
+            display: none;
+        }
+
+        .concept-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        /* ===== ACTIVIDADES ===== */
+        .activities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .activity-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--primary-color);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .activity-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 255, 204, 0.3);
+        }
+
+        .activity-card.completed {
+            border-color: var(--success-color);
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        .activity-number {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            background: var(--primary-color);
+            color: var(--bg-dark);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .activity-title {
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            padding-right: 2rem;
+        }
+
+        .activity-description {
+            color: var(--text-light);
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+
+        .activity-status {
+            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--error-color);
+            transition: var(--transition);
+        }
+
+        .status-icon.completed {
+            background: var(--success-color);
+        }
+
+        /* ===== ACTIVITY CONTAINER ===== */
+        .activity-container {
+            background: rgba(26, 26, 46, 0.8);
+            border: 2px solid var(--primary-color);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            margin-top: 2rem;
+            display: none;
+        }
+
+        .activity-container.active {
+            display: block;
+        }
+
+        .activity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .activity-instructions {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            color: var(--text-light);
+        }
+
+        /* ===== PROGRESS SECTION ===== */
+        .progress-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .progress-title {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .progress-bar-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            height: 20px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--bg-dark);
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        /* ===== DRAG AND DROP ===== */
+        .drag-drop-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .drag-items, .drop-zones {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .drag-item {
+            background: rgba(0, 255, 204, 0.2);
+            border: 2px solid var(--primary-color);
+            border-radius: 10px;
+            padding: 1rem;
+            cursor: move;
+            transition: var(--transition);
+        }
+
+        .drag-item:hover {
+            transform: scale(1.05);
+        }
+
+        .drag-item.dragging {
+            opacity: 0.5;
+        }
+
+        .drop-zone {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px dashed var(--primary-color);
+            border-radius: 10px;
+            padding: 1rem;
+            min-height: 60px;
+            transition: var(--transition);
+        }
+
+        .drop-zone.drag-over {
+            background: rgba(0, 255, 204, 0.1);
+            border-color: var(--secondary-color);
+        }
+
+        .drop-zone.correct {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: var(--success-color);
+        }
+
+        .drop-zone.incorrect {
+            background: rgba(255, 51, 102, 0.2);
+            border-color: var(--error-color);
+        }
+
+        /* ===== MATCHING ===== */
+        .matching-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .matching-column {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .matching-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--primary-color);
+            border-radius: 10px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .matching-item:hover {
+            background: rgba(0, 255, 204, 0.1);
+        }
+
+        .matching-item.selected {
+            background: rgba(0, 255, 204, 0.2);
+            border-color: var(--secondary-color);
+        }
+
+        .matching-item.matched {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: var(--success-color);
+            pointer-events: none;
+        }
+
+        /* ===== SORTING ===== */
+        .sorting-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .sorting-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--primary-color);
+            border-radius: 10px;
+            padding: 1rem;
+            cursor: move;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: var(--transition);
+        }
+
+        .sorting-item:hover {
+            background: rgba(0, 255, 204, 0.1);
+        }
+
+        .sort-handle {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            cursor: grab;
+        }
+
+        .sort-handle:active {
+            cursor: grabbing;
+        }
+
+        /* ===== QUIZ RÁPIDO ===== */
+        .quick-quiz-options {
+            display: grid;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .quick-quiz-option {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .quick-quiz-option:hover {
+            background: rgba(0, 255, 204, 0.1);
+            border-color: var(--primary-color);
+        }
+
+        .quick-quiz-option.selected {
+            background: rgba(0, 255, 204, 0.2);
+            border-color: var(--primary-color);
+        }
+
+        /* ===== WORD SEARCH ===== */
+        .word-search-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 35px);
+            gap: 2px;
+            margin: 2rem auto;
+            justify-content: center;
+        }
+
+        .word-search-cell {
+            width: 35px;
+            height: 35px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.9rem;
+        }
+
+        .word-search-cell:hover {
+            background: rgba(0, 255, 204, 0.1);
+        }
+
+        .word-search-cell.selected {
+            background: rgba(0, 255, 204, 0.3);
+            color: var(--bg-dark);
+        }
+
+        .word-search-cell.found {
+            background: rgba(0, 255, 136, 0.3);
+            color: var(--bg-dark);
+        }
+
+        .word-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 2rem;
+            justify-content: center;
+        }
+
+        .word-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid var(--primary-color);
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            transition: var(--transition);
+        }
+
+        .word-item.found {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: var(--success-color);
+            text-decoration: line-through;
+        }
+
+        /* ===== FLASHCARDS ===== */
+        .flashcard-container {
+            perspective: 1000px;
+            margin: 2rem auto;
+            max-width: 500px;
+        }
+
+        .flashcard {
+            width: 100%;
+            height: 300px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            cursor: pointer;
+        }
+
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            text-align: center;
+            color: var(--bg-dark);
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        .flashcard-back {
+            transform: rotateY(180deg);
+            background: linear-gradient(45deg, var(--secondary-color), var(--accent-color));
+        }
+
+        .flashcard-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        /* ===== CONCEPT CARD ===== */
+        .concept-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 4px solid var(--primary-color);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 5px;
+        }
+
+        .concept-title {
+            color: var(--primary-color);
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        /* ===== TIMER ===== */
+        .timer {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            text-shadow: 0 0 20px currentColor;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 5px;
+        }
+
+        .timer.warning {
+            color: var(--error-color);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        /* ===== NOTIFICATION ===== */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: var(--bg-dark);
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            font-weight: bold;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 2000;
+            max-width: 300px;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: linear-gradient(45deg, var(--success-color), var(--primary-color));
+        }
+
+        .notification.error {
+            background: linear-gradient(45deg, var(--error-color), var(--warning-color));
+        }
+
+        /* ===== RESPONSIVE DESIGN ===== */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .timer {
+                font-size: 2rem;
+            }
+
+            .question-text {
+                font-size: 1.1rem;
+            }
+
+            .btn-container {
+                flex-direction: column;
+            }
+
+            .stats-panel {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .activities-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .drag-drop-container,
+            .matching-container {
+                grid-template-columns: 1fr;
+            }
+
+            .word-search-grid {
+                grid-template-columns: repeat(8, 30px);
+            }
+
+            .concept-tabs {
+                flex-direction: column;
+            }
+
+            .modal.active {
+                align-items: center;
+                padding: 1rem;
+            }
+
+            .modal-content {
+                padding: 1.5rem;
+            }
+
+            .activity-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .question-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .progress-bar {
+                width: 100%;
+                margin: 1rem 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-panel {
+                grid-template-columns: 1fr;
+            }
+
+            .leaderboard-table {
+                font-size: 0.9rem;
+            }
+
+            .leaderboard-table th,
+            .leaderboard-table td {
+                padding: 0.5rem;
+            }
+
+            .word-search-grid {
+                grid-template-columns: repeat(6, 30px);
+            }
+        }
+
+        /* ===== ACCESSIBILITY ===== */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* ===== FOCUS STYLES ===== */
+        button:focus,
+        select:focus,
+        textarea:focus,
+        input:focus {
+            outline: 2px solid var(--primary-color);
+            outline-offset: 2px;
+        }
+
+        /* ===== LOADING ===== */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ===== UTILITIES ===== */
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-2 {
+            margin-top: 2rem;
+        }
+
+        .mb-2 {
+            margin-bottom: 2rem;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Animación de fondo -->
+    <div class="bg-animation" id="bgAnimation"></div>
+
+    <!-- Header -->
+    <header>
+        <h1>EcoQuiz Futurista</h1>
+        <p class="subtitle">Plataforma Interactiva de Aprendizaje Ecológico</p>
+    </header>
+
+    <!-- Contenedor principal -->
+    <main class="container">
+        <!-- Panel de estadísticas -->
+        <section class="stats-panel">
+            <div class="stat-card">
+                <div class="stat-value" id="questionCount">0/20</div>
+                <div class="stat-label">Preguntas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="correctCount">0</div>
+                <div class="stat-label">Correctas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value timer" id="timerDisplay">00:00</div>
+                <div class="stat-label">Tiempo</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="scoreDisplay">0</div>
+                <div class="stat-label">Puntos</div>
+            </div>
+        </section>
+
+        <!-- Leaderboard -->
+        <section class="leaderboard" id="leaderboard">
+            <h2>🏆 Tabla de Mejores Puntuaciones</h2>
+            <div class="table-container">
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Nombre</th>
+                            <th>Puntuación</th>
+                            <th>Correctas</th>
+                            <th>Tiempo</th>
+                            <th>Fecha</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardBody">
+                        <tr>
+                            <td colspan="6" style="text-align: center; opacity: 0.7;">No hay registros aún. ¡Sé el primero!</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Pantalla de inicio -->
+        <section class="info-panel start-screen active" id="startScreen">
+            <h2>🌿 Bienvenido al EcoQuiz Futurista 🌿</h2>
+            <p class="description">
+                Prepárate para un viaje interactivo a través de las fascinantes relaciones 
+                que existen entre los seres vivos en los ecosistemas. Evalúa tus conocimientos 
+                sobre relaciones inter e intraespecíficas mientras compites contra el tiempo.
+            </p>
+            <div class="concept-card">
+                <div class="concept-title">📚 ¿Qué aprenderás?</div>
+                <p>Relaciones interespecíficas: depredación, parasitismo, mutualismo, comensalismo, amensalismo y competencia.</p>
+                <p>Relaciones intraespecíficas: competencia, cooperación, territorialidad y jerarquías sociales.</p>
+            </div>
+            <div class="btn-container" style="justify-content: center;">
+                <button class="btn" onclick="startQuiz()">Comenzar Quiz</button>
+                <button class="btn" onclick="showConcepts()" style="background: linear-gradient(45deg, var(--secondary-color), var(--accent-color));">Ver Conceptos Interactivos</button>
+            </div>
+        </section>
+
+        <!-- Contenedor del Quiz -->
+        <section class="quiz-container" id="quizContainer">
+            <div class="question-header">
+                <span class="question-number" id="questionNumber">Pregunta 1</span>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressBar" style="width: 5%"></div>
+                </div>
+                <span id="remainingQuestions">1/20</span>
+            </div>
+            
+            <div class="question-text" id="questionText"></div>
+            
+            <div class="options" id="optionsContainer"></div>
+            
+            <div class="btn-container">
+                <button class="btn" id="prevBtn" onclick="previousQuestion()" disabled>Anterior</button>
+                <button class="btn" id="nextBtn" onclick="nextQuestion()" disabled>Siguiente</button>
+                <button class="btn" id="submitBtn" onclick="submitQuiz()" style="display: none;">Finalizar Quiz</button>
+            </div>
+        </section>
+
+        <!-- Pantalla de resultados -->
+        <section class="info-panel results-screen" id="resultsScreen">
+            <h2>🎉 Quiz Completado 🎉</h2>
+            <div class="final-score" id="finalScore">0/20</div>
+            <div class="performance-badge" id="performanceBadge">Excelente</div>
+            <p class="score-message" id="scoreMessage"></p>
+            <div class="stats-panel" style="margin: 2rem 0;">
+                <div class="stat-card">
+                    <div class="stat-value" id="finalTime">00:00</div>
+                    <div class="stat-label">Tiempo Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="accuracy">0%</div>
+                    <div class="stat-label">Precisión</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalPoints">0</div>
+                    <div class="stat-label">Puntos Totales</div>
+                </div>
+            </div>
+            <div class="btn-container" style="justify-content: center;">
+                <button class="btn" onclick="restartQuiz()">Reintentar</button>
+                <button class="btn" onclick="showConcepts()" style="background: linear-gradient(45deg, var(--secondary-color), var(--accent-color));">Ver Conceptos</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal de conceptos interactivos -->
+    <div class="modal" id="conceptsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">📖 Centro de Aprendizaje Interactivo</h3>
+                <button class="close-modal" onclick="closeModal()" aria-label="Cerrar modal">&times;</button>
+            </div>
+            
+            <!-- Tabs de conceptos -->
+            <div class="concept-tabs">
+                <button class="concept-tab active" onclick="switchConcept('inter')">Relaciones Interespecíficas</button>
+                <button class="concept-tab" onclick="switchConcept('intra')">Relaciones Intraespecíficas</button>
+                <button class="concept-tab" onclick="switchConcept('ecosystem')">Ecosistema</button>
+            </div>
+
+            <!-- Contenido de Relaciones Interespecíficas -->
+            <div class="concept-content active" id="inter-content">
+                <h3 style="color: var(--primary-color); margin-bottom: 1rem;">🦁 Relaciones Interespecíficas</h3>
+                <p style="margin-bottom: 1rem;">Las relaciones interespecíficas ocurren entre organismos de diferentes especies. ¡Completa todas las actividades para dominar este concepto!</p>
+                
+                <div class="progress-section">
+                    <div class="progress-title">Progreso: <span id="inter-progress">0/10</span></div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" id="inter-progress-bar" style="width: 0%">0%</div>
+                    </div>
+                </div>
+
+                <div class="activities-grid">
+                    <div class="activity-card" onclick="startActivity('inter', 0)">
+                        <div class="activity-number">1</div>
+                        <div class="activity-title">Clasificación Drag & Drop</div>
+                        <div class="activity-description">Arrastra los ejemplos a su tipo de relación correcta</div>
+                        <div class="activity-status">
+                            <div class="status-icon" id="inter-0-status"></div>
+                            <span id="inter-0-text">Sin completar</span>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-card" onclick="startActivity('inter', 1)">
+                        <div class="activity-number">2</div>
+                        <div class="activity-title">Matching de Definiciones</div>
+                        <div class="activity-description">Relaciona cada término con su definición correcta</div>
+                        <div class="activity-status">
+                            <div class="status-icon" id="inter-1-status"></div>
+                            <span id="inter-1-text">Sin completar</span>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-card" onclick="startActivity('inter', 2)">
+                        <div class="activity-number">3</div>
+                        <div class="activity-title">Quiz Rápido</div>
+                        <div class="activity-description">Responde preguntas sobre relaciones interespecíficas</div>
+                        <div class="activity-status">
+                            <div class="status-icon" id="inter-2-status"></div>
+                            <span id="inter-2-text">Sin completar</span>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-card" onclick="startActivity('inter', 3)">
+                        <div class="activity-number">4</div>
+                        <div class="activity-title">Sopa de Letras</div>
+                        <div class="activity-description">Encuentra los términos relacionados con relaciones interespecíficas</div>
+                        <div class="activity-status">
+                            <div class="status-icon" id="inter-3-status"></div>
+                            <span id="inter-3-text">Sin completar</span>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-card" onclick="startActivity('inter', 4)">
+                        <div class="activity-number">5</div>
+                        <div class="activity-title">Flashcards Interactivas</div>
+                        <div class="activity-description">Estudia con tarjetas interactivas de conceptos clave</div>
+                        <div class="activity-status">
+                            <div class="status-icon" id="inter-4-status"></div>
+                            <span id="inter-4-text">Sin completar</span>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-card" onclick="startActivity('inter', 5)">
+                        <div class="activity-number">6</div>
+                        <div class="activity-title">Ordenamiento de Procesos</div>
+                        <div class="activity-description">Ordena las etapas de una relación de depredación</div>
+                        <div class="activity-status">
+                            <div class="status-icon" id="inter-5-status"></div>
+                            <span id="inter-5-text">Sin completar</span>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-card" onclick="startActivity('inter', 6)">
+                        <div class="activity-number">7</div>
+                        <div class="activity-title">Identificación Visual</div>
+                        <div class="activity-description">Identifica el tipo de relación en imágenes</div>
+                        <div class="activity-status">
+                            <div class="status-icon" id="inter-6-status"></div>
+                            <span id="inter-6-text">Sin completar</span>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-card" onclick="startActivity('inter', 7)">
+                        <div class="activity-number">8</div>
+                        <div class="activity-title">Construcción de Redes</div>
+                        <div class="activity-description">Crea una red trófica con los organismos dados</div>
+                        <div class="activity-status">
+                            <div class="status-icon" id="inter-7-status"></div>
+                            <span id="inter-7-text">Sin completar</span>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-card" onclick="startActivity('inter', 8)">
+                        <div class="activity-number">9</div>
+                        <div class="activity-title">Caso Práctico</div>
+                        <div class="activity-description">Analiza un ecosistema e identifica todas las relaciones</div>
+                        <div class="activity-status">
+                            <div class="status-icon" id="inter-8-status"></div>
+                            <span id="inter-8-text">Sin completar</span>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-card" onclick="startActivity('inter', 9)">
+                        <div class="activity-number">10</div>
+                        <div class="activity-title">Desafío Final</div>
+                        <div class="activity-description">Combinación de todos los conceptos aprendidos</div>
+                        <div class="activity-status">
+                            <div class="status-icon" id="inter-9-status"></div>
+                            <span id="inter-9-text">Sin completar</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contenedor de actividad -->
+                <div class="activity-container" id="inter-activity"></div>
+            </div>
+
+            <!-- Contenido de Relaciones Intraespecíficas -->
+            <div class="concept-content" id="intra-content">
+                <h3 style="color: var(--primary-color); margin-bottom: 1rem;">🐺 Relaciones Intraespecíficas</h3>
+                <p style="margin-bottom: 1rem;">Las relaciones intraespecíficas ocurren entre organismos de la misma especie. ¡Domina estas actividades!</p>
+                
+                <div class="progress-section">
+                    <div class="progress-title">Progreso: <span id="intra-progress">0/10</span></div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" id="intra-progress-bar" style="width: 0%">0%</div>
+                    </div>
+                </div>
+
+                <div class="activities-grid">
+                    <div class="activity-card" onclick="startActivity('intra', 0)">
+                        <div class="activity-number">1</div>
+                        <div class="activity-title">Clasificación Social</div>
+                        <div class="activity-description">Clasifica los comportamientos sociales animales</div>
+                        <div class="activity-status">
+                            <div class="status-icon" id="intra-0-status"></div>
+                            <span id="intra-0-text">Sin completar</span>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-card" onclick="startActivity('intra', 1)">
+                        <div class="activity-number">2</div>
+                        <div class="activity-title">Jerarquías Animales</div>
+                        <div class="activity-description">Ordena la jerarquía en una manada de lobos</div>
+                        <div class="activity-status">
+                            <div class="status-icon" id="intra-1-status"></div>
+                            <span id="intra-1-text">Sin completar</span>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-card" onclick="startActivity('intra', 2)">
+                        <div class="activity-number">3</div>
+                        <div class="activity-title">Territorialidad Virtual</div>
+                        <div class="activity-description">Marca territorios en un mapa interactivo</div>
+                        <div class="activity-status">
+                            <div class="status-icon" id="intra-2-status"></div>
+                            <span id="intra-2-text">Sin completar</span>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-card" onclick="startActivity('intra', 3)">
+                        <div class="activity-number">4</div>
+                        <div class="activity-title">Comunicación Animal</div>
+                        <div class="activity-description">Identifica tipos de comunicación intraespecífica</div>
+                        <div class="activity-status">
+                            <div class="status-icon" id="intra-3-status"></div>
+                            <span id="intra-3-text">Sin completar</span>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-card" onclick="startActivity('intra', 4)">
+                        <div class="activity-number">5</div>
+                        <div class="activity-title">Cooperación en Colonias</div>
+                        <div class="activity-description">Asigna roles en una colonia de hormigas</div>
+                        <div class="activity-status">
+                            <div class="status-icon" id="intra-4-status"></div>
+                            <span id="intra-4-text">Sin completar</span>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-card" onclick="startActivity('intra', 5)">
+                        <div class="activity-number">6</div>
+                        <div class="activity-title">Competencia por Recursos</div>
+                        <div class="activity-description">Simula competencia por alimento y espacio</div>
+                        <div class="activity-status">
+                            <div class="status-icon" id="intra-5-status"></div>
+                            <span id="intra-5-text">Sin completar</span>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-card" onclick="startActivity('intra', 6)">
+                        <div class="activity-number">7</div>
+                        <div class="activity-title">Apareamiento y Selección</div>
+                        <div class="activity-description">Identifica comportamientos de cortejo</div>
+                        <div class="activity-status">
+                            <div class="status-icon" id="intra-6-status"></div>
+                            <span id="intra-6-text">Sin completar</span>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-card" onclick="startActivity('intra', 7)">
+                        <div class="activity-number">8</div>
+                        <div class="activity-title">Cuidado Parental</div>
+                        <div class="activity-description">Clasifica estrategias de cuidado parental</div>
+                        <div class="activity-status">
+                            <div class="status-icon" id="intra-7-status"></div>
+                            <span id="intra-7-text">Sin completar</span>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-card" onclick="startActivity('intra', 8)">
+                        <div class="activity-number">9</div>
+                        <div class="activity-title">Migración en Grupo</div>
+                        <div class="activity-description">Organiza una migración de aves</div>
+                        <div class="activity-status">
+                            <div class="status-icon" id="intra-8-status"></div>
+                            <span id="intra-8-text">Sin completar</span>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-card" onclick="startActivity('intra', 9)">
+                        <div class="activity-number">10</div>
+                        <div class="activity-title">Simulación de Población</div>
+                        <div class="activity-description">Maneja una población con factores intraespecíficos</div>
+                        <div class="activity-status">
+                            <div class="status-icon" id="intra-9-status"></div>
+                            <span id="intra-9-text">Sin completar</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contenedor de actividad -->
+                <div class="activity-container" id="intra-activity"></div>
+            </div>
+
+            <!-- Contenido de Ecosistema -->
+            <div class="concept-content" id="ecosystem-content">
+                <h3 style="color: var(--primary-color); margin-bottom: 1rem;">🌍 Ecosistema</h3>
+                <p style="margin-bottom: 1rem;">Un ecosistema es la comunidad de seres vivos con su entorno físico. ¡Explora estas actividades!</p>
+                
+                <div class="progress-section">
+                    <div class="progress-title">Progreso: <span id="ecosystem-progress">0/10</span></div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" id="ecosystem-progress-bar" style="width: 0%">0%</div>
+                    </div>
+                </div>
+
+                <div class="activities-grid">
+                    <div class="activity-card" onclick="startActivity('ecosystem', 0)">
+                        <div class="activity-number">1</div>
+                        <div class="activity-title">Componentes del Ecosistema</div>
+                        <div class="activity-description">Clasifica componentes bióticos y abióticos</div>
+                        <div class="activity-status">
+                            <div class="status-icon" id="ecosystem-0-status"></div>
+                            <span id="ecosystem-0-text">Sin completar</span>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-card" onclick="startActivity('ecosystem', 1)">
+                        <div class="activity-number">2</div>
+                        <div class="activity-title">Cadenas Alimenticias</div>
+                        <div class="activity-description">Construye cadenas alimenticias correctas</div>
+                        <div class="activity-status">
+                            <div class="status-icon" id="ecosystem-1-status"></div>
+                            <span id="ecosystem-1-text">Sin completar</span>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-card" onclick="startActivity('ecosystem', 2)">
+                        <div class="activity-number">3</div>
+                        <div class="activity-title">Niveles Tróficos</div>
+                        <div class="activity-description">Organiza organismos por nivel trófico</div>
+                        <div class="activity-status">
+                            <div class="status-icon" id="ecosystem-2-status"></div>
+                            <span id="ecosystem-2-text">Sin completar</span>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-card" onclick="startActivity('ecosystem', 3)">
+                        <div class="activity-number">4</div>
+                        <div class="activity-title">Ciclos Biogeoquímicos</div>
+                        <div class="activity-description">Ordena el ciclo del carbono</div>
+                        <div class="activity-status">
+                            <div class="status-icon" id="ecosystem-3-status"></div>
+                            <span id="ecosystem-3-text">Sin completar</span>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-card" onclick="startActivity('ecosystem', 4)">
+                        <div class="activity-number">5</div>
+                        <div class="activity-title">Flujo de Energía</div>
+                        <div class="activity-description">Traza el flujo de energía en un ecosistema</div>
+                        <div class="activity-status">
+                            <div class="status-icon" id="ecosystem-4-status"></div>
+                            <span id="ecosystem-4-text">Sin completar</span>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-card" onclick="startActivity('ecosystem', 5)">
+                        <div class="activity-number">6</div>
+                        <div class="activity-title">Biomas del Mundo</div>
+                        <div class="activity-description">Identifica características de cada bioma</div>
+                        <div class="activity-status">
+                            <div class="status-icon" id="ecosystem-5-status"></div>
+                            <span id="ecosystem-5-text">Sin completar</span>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-card" onclick="startActivity('ecosystem', 6)">
+                        <div class="activity-number">7</div>
+                        <div class="activity-title">Sucesión Ecológica</div>
+                        <div class="activity-description">Ordena las etapas de la sucesión</div>
+                        <div class="activity-status">
+                            <div class="status-icon" id="ecosystem-6-status"></div>
+                            <span id="ecosystem-6-text">Sin completar</span>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-card" onclick="startActivity('ecosystem', 7)">
+                        <div class="activity-number">8</div>
+                        <div class="activity-title">Biodiversidad</div>
+                        <div class="activity-description">Calcula índices de biodiversidad</div>
+                        <div class="activity-status">
+                            <div class="status-icon" id="ecosystem-7-status"></div>
+                            <span id="ecosystem-7-text">Sin completar</span>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-card" onclick="startActivity('ecosystem', 8)">
+                        <div class="activity-number">9</div>
+                        <div class="activity-title">Impacto Humano</div>
+                        <div class="activity-description">Identifica impactos humanos en ecosistemas</div>
+                        <div class="activity-status">
+                            <div class="status-icon" id="ecosystem-8-status"></div>
+                            <span id="ecosystem-8-text">Sin completar</span>
+                        </div>
+                    </div>
+                    
+                    <div class="activity-card" onclick="startActivity('ecosystem', 9)">
+                        <div class="activity-number">10</div>
+                        <div class="activity-title">Conservación</div>
+                        <div class="activity-description">Diseña un plan de conservación</div>
+                        <div class="activity-status">
+                            <div class="status-icon" id="ecosystem-9-status"></div>
+                            <span id="ecosystem-9-text">Sin completar</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contenedor de actividad -->
+                <div class="activity-container" id="ecosystem-activity"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notificación -->
+    <div class="notification" id="notification" role="alert"></div>
+
+    <script>
+        // ===== VARIABLES GLOBALES =====
+        const questions = [
+            {
+                question: "¿Qué tipo de relación ocurre cuando un león caza y come una cebra?",
+                options: ["Parasitismo", "Depredación", "Mutualismo", "Comensalismo"],
+                correct: 1,
+                explanation: "La depredación es cuando un organismo (depredador) caza y consume a otro (presa)."
+            },
+            {
+                question: "En la relación entre las abejas y las flores, ¿qué tipo de interacción se presenta?",
+                options: ["Parasitismo", "Competencia", "Mutualismo", "Amensalismo"],
+                correct: 2,
+                explanation: "Es mutualismo porque las abejas obtienen néctar y las flores son polinizadas."
+            },
+            {
+                question: "Cuando los tiburones y las rémoras viajan juntos, ¿qué relación existe?",
+                options: ["Comensalismo", "Parasitismo", "Depredación", "Mutualismo"],
+                correct: 0,
+                explanation: "Las rémoras se benefician transportándose y alimentándose de restos, sin afectar al tiburón."
+            },
+            {
+                question: "La relación entre un hongo y un árbol formando una micorriza es un ejemplo de:",
+                options: ["Parasitismo", "Mutualismo", "Comensalismo", "Amensalismo"],
+                correct: 1,
+                explanation: "Ambos se benefician: el hongo recibe nutrientes y el árbol mejora la absorción de agua."
+            },
+            {
+                question: "¿Qué relación describe la interacción entre pulgas y perros?",
+                options: ["Mutualismo", "Comensalismo", "Parasitismo", "Depredación"],
+                correct: 2,
+                explanation: "Las pulgas se alimentan del perro causándole daño, es parasitismo."
+            },
+            {
+                question: "Cuando dos especies de pájaros compiten por el mismo tipo de semillas, se trata de:",
+                options: ["Competencia interespecífica", "Competencia intraespecífica", "Mutualismo", "Amensalismo"],
+                correct: 0,
+                explanation: "Es competencia entre especies diferentes por el mismo recurso."
+            },
+            {
+                question: "La producción de antibióticos por hongos que inhiben el crecimiento de bacterias es:",
+                options: ["Mutualismo", "Parasitismo", "Amensalismo", "Comensalismo"],
+                correct: 2,
+                explanation: "El hongo perjudica a las bacterias sin recibir beneficio directo."
+            },
+            {
+                question: "¿Qué tipo de relación intraespecífica ocurre cuando dos lobos luchan por el liderazgo de la manada?",
+                options: ["Cooperación", "Territorialidad", "Jerarquía social", "Competencia"],
+                correct: 2,
+                explanation: "Establecen una jerarquía social para determinar el dominio."
+            },
+            {
+                question: "Las hormigas trabajando juntas en un hormiguero es un ejemplo de:",
+                options: ["Competencia intraespecífica", "Cooperación", "Territorialidad", "Depredación"],
+                correct: 1,
+                explanation: "Las hormigas cooperan para el beneficio de toda la colonia."
+            },
+            {
+                question: "Cuando un pájaro defiende su nido de otros pájaros de la misma especie, es:",
+                options: ["Territorialidad", "Jerarquía social", "Competencia", "Cooperación"],
+                correct: 0,
+                explanation: "Defienden un territorio específico para reproducirse y criar."
+            },
+            {
+                question: "La relación entre orquídeas epífitas y árboles es:",
+                options: ["Parasitismo", "Mutualismo", "Comensalismo", "Amensalismo"],
+                correct: 2,
+                explanation: "Las orquídeas usan el árbol como soporte sin dañarlo."
+            },
+            {
+                question: "¿Qué relación describe la interacción entre peces payaso y anémonas?",
+                options: ["Parasitismo", "Mutualismo", "Comensalismo", "Competencia"],
+                correct: 1,
+                explanation: "El pez payaso obtiene protección y la anémona se beneficia de la limpieza y nutrientes."
+            },
+            {
+                question: "Cuando los ciervos machos luchan por las hembras durante la época de apareamiento, es:",
+                options: ["Competencia intraespecífica", "Territorialidad", "Cooperación", "Jerarquía social"],
+                correct: 0,
+                explanation: "Competencia entre individuos de la misma especie por aparearse."
+            },
+            {
+                question: "La relación entre bacterias nitrificantes y plantas leguminosas es:",
+                options: ["Parasitismo", "Mutualismo", "Comensalismo", "Amensalismo"],
+                correct: 1,
+                explanation: "Las bacterias fijan nitrógeno para las plantas y reciben nutrientes."
+            },
+            {
+                question: "¿Qué ocurre cuando un árbol grande sombrea y evita que crezcan plantas pequeñas debajo?",
+                options: ["Comensalismo", "Mutualismo", "Amensalismo", "Parasitismo"],
+                correct: 2,
+                explanation: "El árbol perjudica a las plantas sin recibir beneficio ni daño."
+            },
+            {
+                question: "Los lobos cazando en manada para atrapar presas grandes es un ejemplo de:",
+                options: ["Competencia intraespecífica", "Cooperación", "Territorialidad", "Depredación"],
+                correct: 1,
+                explanation: "Los lobos cooperan para cazar presas que no podrían capturar solos."
+            },
+            {
+                question: "La relación entre el pez limpiador y los peces más grandes es:",
+                options: ["Parasitismo", "Mutualismo", "Comensalismo", "Amensalismo"],
+                correct: 1,
+                explanation: "El pez limpiador obtiene alimento y el pez grande se libera de parásitos."
+            },
+            {
+                question: "Cuando dos leopardos marcan y defienden su territorio de otros leopardos, es:",
+                options: ["Jerarquía social", "Territorialidad", "Competencia", "Cooperación"],
+                correct: 1,
+                explanation: "Defienden activamente un área geográfica específica."
+            },
+            {
+                question: "La relación entre el muérdago y los árboles es:",
+                options: ["Mutualismo", "Comensalismo", "Parasitismo", "Amensalismo"],
+                correct: 2,
+                explanation: "El muérdago extrae nutrientes del árbol, perjudicándolo."
+            },
+            {
+                question: "¿Qué tipo de relación describe la interacción entre líquenes (hongo + alga)?",
+                options: ["Parasitismo", "Mutualismo", "Comensalismo", "Competencia"],
+                correct: 1,
+                explanation: "El hongo proporciona estructura y protección, el alga realiza fotosíntesis."
+            }
+        ];
+
+        // Estado de la aplicación
+        const appState = {
+            currentQuestion: 0,
+            score: 0,
+            correctAnswers: 0,
+            userAnswers: [],
+            timer: null,
+            seconds: 0,
+            quizStarted: false,
+            currentConcept: 'inter',
+            currentActivity: null,
+            activityProgress: {
+                inter: new Array(10).fill(false),
+                intra: new Array(10).fill(false),
+                ecosystem: new Array(10).fill(false)
+            },
+            leaderboard: []
+        };
+
+        // ===== FUNCIONES DE INICIALIZACIÓN =====
+        function initApp() {
+            initBackground();
+            resetStats();
+            loadLeaderboard();
+            loadActivityProgress();
+            setupEventListeners();
+        }
+
+        function initBackground() {
+            const bgAnimation = document.getElementById('bgAnimation');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                bgAnimation.appendChild(particle);
+            }
+        }
+
+        function setupEventListeners() {
+            // Cerrar modal con Escape
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeModal();
+                }
+            });
+
+            // Cerrar modal haciendo clic fuera
+            document.getElementById('conceptsModal').addEventListener('click', (e) => {
+                if (e.target.id === 'conceptsModal') {
+                    closeModal();
+                }
+            });
+
+            // Prevenir navegación accidental
+            window.addEventListener('beforeunload', (e) => {
+                if (appState.quizStarted) {
+                    e.preventDefault();
+                    e.returnValue = '';
+                }
+            });
+        }
+
+        // ===== FUNCIONES DEL QUIZ PRINCIPAL =====
+        function startQuiz() {
+            showScreen('quizContainer');
+            appState.currentQuestion = 0;
+            appState.score = 0;
+            appState.correctAnswers = 0;
+            appState.userAnswers = [];
+            appState.seconds = 0;
+            appState.quizStarted = true;
+            
+            startTimer();
+            loadQuestion();
+            updateStats();
+        }
+
+        function startTimer() {
+            appState.timer = setInterval(() => {
+                appState.seconds++;
+                updateTimer();
+                
+                if (appState.seconds >= 600) {
+                    document.getElementById('timerDisplay').classList.add('warning');
+                }
+            }, 1000);
+        }
+
+        function updateTimer() {
+            const minutes = Math.floor(appState.seconds / 60);
+            const secs = appState.seconds % 60;
+            const display = `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            document.getElementById('timerDisplay').textContent = display;
+        }
+
+        function stopTimer() {
+            clearInterval(appState.timer);
+            document.getElementById('timerDisplay').classList.remove('warning');
+        }
+
+        function loadQuestion() {
+            const question = questions[appState.currentQuestion];
+            
+            // Actualizar progreso
+            document.getElementById('questionNumber').textContent = `Pregunta ${appState.currentQuestion + 1}`;
+            document.getElementById('remainingQuestions').textContent = `${appState.currentQuestion + 1}/20`;
+            document.getElementById('progressBar').style.width = `${((appState.currentQuestion + 1) / 20) * 100}%`;
+            
+            // Cargar texto de pregunta
+            document.getElementById('questionText').textContent = question.question;
+            
+            // Cargar opciones
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'option';
+                optionDiv.onclick = () => selectOption(index);
+                
+                const letter = String.fromCharCode(65 + index);
+                optionDiv.innerHTML = `
+                    <span class="option-letter">${letter}</span>
+                    <span>${option}</span>
+                `;
+                
+                if (appState.userAnswers[appState.currentQuestion] === index) {
+                    optionDiv.classList.add('selected');
+                }
+                
+                optionsContainer.appendChild(optionDiv);
+            });
+            
+            // Actualizar botones
+            document.getElementById('prevBtn').disabled = appState.currentQuestion === 0;
+            document.getElementById('nextBtn').disabled = appState.userAnswers[appState.currentQuestion] === undefined;
+            
+            if (appState.currentQuestion === 19) {
+                document.getElementById('nextBtn').style.display = 'none';
+                document.getElementById('submitBtn').style.display = 'inline-block';
+                document.getElementById('submitBtn').disabled = appState.userAnswers[appState.currentQuestion] === undefined;
+            } else {
+                document.getElementById('nextBtn').style.display = 'inline-block';
+                document.getElementById('submitBtn').style.display = 'none';
+            }
+        }
+
+        function selectOption(index) {
+            // Remover selección previa
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Agregar nueva selección
+            document.querySelectorAll('.option')[index].classList.add('selected');
+            
+            // Guardar respuesta
+            appState.userAnswers[appState.currentQuestion] = index;
+            
+            // Habilitar botón siguiente
+            document.getElementById('nextBtn').disabled = false;
+            if (appState.currentQuestion === 19) {
+                document.getElementById('submitBtn').disabled = false;
+            }
+            
+            // Animación
+            const selectedOption = document.querySelectorAll('.option')[index];
+            selectedOption.style.animation = 'correctPulse 0.5s ease';
+            setTimeout(() => {
+                selectedOption.style.animation = '';
+            }, 500);
+        }
+
+        function nextQuestion() {
+            if (appState.currentQuestion < 19) {
+                appState.currentQuestion++;
+                loadQuestion();
+            }
+        }
+
+        function previousQuestion() {
+            if (appState.currentQuestion > 0) {
+                appState.currentQuestion--;
+                loadQuestion();
+            }
+        }
+
+        function submitQuiz() {
+            stopTimer();
+            
+            // Calcular puntuación
+            appState.correctAnswers = 0;
+            appState.score = 0;
+            
+            appState.userAnswers.forEach((answer, index) => {
+                if (answer === questions[index].correct) {
+                    appState.correctAnswers++;
+                    const timeBonus = Math.max(0, 100 - Math.floor(appState.seconds / 6));
+                    appState.score += 100 + timeBonus;
+                }
+            });
+            
+            // Guardar en leaderboard
+            const playerName = prompt('¡Felicidades! Ingresa tu nombre para el leaderboard:') || 'Anónimo';
+            const minutes = Math.floor(appState.seconds / 60);
+            const secs = appState.seconds % 60;
+            const timeStr = `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            const dateStr = new Date().toLocaleDateString();
+            
+            appState.leaderboard.push({
+                name: playerName,
+                score: appState.score,
+                correct: appState.correctAnswers,
+                time: timeStr,
+                date: dateStr
+            });
+            
+            saveLeaderboard();
+            updateLeaderboardDisplay();
+            
+            // Mostrar resultados
+            showResults();
+        }
+
+        function showResults() {
+            showScreen('resultsScreen');
+            
+            // Actualizar puntuación final
+            document.getElementById('finalScore').textContent = `${appState.correctAnswers}/20`;
+            
+            // Calcular y mostrar tiempo
+            const minutes = Math.floor(appState.seconds / 60);
+            const secs = appState.seconds % 60;
+            document.getElementById('finalTime').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            
+            // Calcular precisión
+            const accuracy = Math.round((appState.correctAnswers / 20) * 100);
+            document.getElementById('accuracy').textContent = `${accuracy}%`;
+            
+            // Mostrar puntos totales
+            document.getElementById('totalPoints').textContent = appState.score;
+            
+            // Determinar badge y mensaje
+            let badge, message;
+            if (accuracy >= 90) {
+                badge = "🏆 EXPERTO EN ECOSISTEMAS";
+                message = "¡Excelente! Tienes un conocimiento excepcional sobre las relaciones en los ecosistemas.";
+            } else if (accuracy >= 70) {
+                badge = "⭐ MUY BUENO";
+                message = "¡Gran trabajo! Comprendes bien la mayoría de los conceptos ecológicos.";
+            } else if (accuracy >= 50) {
+                badge = "👍 BUEN INTENTO";
+                message = "Vas por buen camino. Repasa algunos conceptos para mejorar.";
+            } else {
+                badge = "📚 NECESITAS PRÁCTICA";
+                message = "Sigue aprendiendo sobre las relaciones en los ecosistemas. ¡Puedes mejorar!";
+            }
+            
+            document.getElementById('performanceBadge').textContent = badge;
+            document.getElementById('scoreMessage').textContent = message;
+        }
+
+        function restartQuiz() {
+            showScreen('startScreen');
+            resetStats();
+        }
+
+        function resetStats() {
+            appState.currentQuestion = 0;
+            appState.score = 0;
+            appState.correctAnswers = 0;
+            appState.userAnswers = [];
+            appState.seconds = 0;
+            appState.quizStarted = false;
+            
+            document.getElementById('timerDisplay').textContent = '00:00';
+            document.getElementById('questionCount').textContent = '0/20';
+            document.getElementById('correctCount').textContent = '0';
+            document.getElementById('scoreDisplay').textContent = '0';
+        }
+
+        function updateStats() {
+            document.getElementById('questionCount').textContent = `${appState.currentQuestion + 1}/20`;
+            document.getElementById('correctCount').textContent = appState.correctAnswers;
+            document.getElementById('scoreDisplay').textContent = appState.score;
+        }
+
+        // ===== FUNCIONES DEL MODAL =====
+        function showConcepts() {
+            document.getElementById('conceptsModal').classList.add('active');
+            updateAllProgress();
+        }
+
+        function closeModal() {
+            document.getElementById('conceptsModal').classList.remove('active');
+        }
+
+        function switchConcept(concept) {
+            // Actualizar tabs
+            document.querySelectorAll('.concept-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Actualizar contenido
+            document.querySelectorAll('.concept-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`${concept}-content`).classList.add('active');
+            
+            appState.currentConcept = concept;
+            
+            // Ocultar actividad actual
+            document.querySelectorAll('.activity-container').forEach(container => {
+                container.classList.remove('active');
+            });
+        }
+
+        // ===== FUNCIONES DE ACTIVIDADES =====
+        function startActivity(concept, activityIndex) {
+            appState.currentConcept = concept;
+            appState.currentActivity = activityIndex;
+            
+            // Ocultar todas las actividades
+            document.querySelectorAll('.activity-container').forEach(container => {
+                container.classList.remove('active');
+            });
+            
+            // Mostrar contenedor de actividad
+            const container = document.getElementById(`${concept}-activity`);
+            container.classList.add('active');
+            
+            // Cargar actividad específica
+            loadActivity(concept, activityIndex);
+        }
+
+        function loadActivity(concept, index) {
+            const container = document.getElementById(`${concept}-activity`);
+            
+            // Mapeo de actividades
+            const activityMap = {
+                inter: [
+                    loadInterDragDrop,
+                    loadInterMatching,
+                    loadInterQuickQuiz,
+                    loadInterWordSearch,
+                    loadInterFlashcards,
+                    loadInterSorting,
+                    loadInterVisual,
+                    loadInterNetwork,
+                    loadInterCase,
+                    loadInterChallenge
+                ],
+                intra: [
+                    loadIntraClassification,
+                    loadIntraHierarchy,
+                    loadIntraTerritory,
+                    loadIntraCommunication,
+                    loadIntraCooperation,
+                    loadIntraCompetition,
+                    loadIntraMating,
+                    loadIntraParental,
+                    loadIntraMigration,
+                    loadIntraSimulation
+                ],
+                ecosystem: [
+                    loadEcoComponents,
+                    loadEcoChains,
+                    loadEcoTrophic,
+                    loadEcoCycles,
+                    loadEcoEnergy,
+                    loadEcoBiomes,
+                    loadEcoSuccession,
+                    loadEcoBiodiversity,
+                    loadEcoImpact,
+                    loadEcoConservation
+                ]
+            };
+            
+            if (activityMap[concept] && activityMap[concept][index]) {
+                activityMap[concept][index](container);
+            }
+        }
+
+        // ===== ACTIVIDADES RELACIONES INTERESPECÍFICAS =====
+        function loadInterDragDrop(container) {
+            container.innerHTML = `
+                <div class="activity-header">
+                    <h3>Actividad 1: Clasificación de Relaciones Interespecíficas</h3>
+                    <button class="btn" onclick="closeActivity()">Cerrar</button>
+                </div>
+                <div class="activity-instructions">
+                    Arrastra cada ejemplo a su tipo de relación correspondiente:
+                </div>
+                <div class="drag-drop-container">
+                    <div class="drag-items">
+                        <div class="drag-item" draggable="true" data-relation="depredacion">León cazando una cebra</div>
+                        <div class="drag-item" draggable="true" data-relation="mutualismo">Abejas polinizando flores</div>
+                        <div class="drag-item" draggable="true" data-relation="parasitismo">Pulgas en un perro</div>
+                        <div class="drag-item" draggable="true" data-relation="comensalismo">Rémoras con tiburones</div>
+                        <div class="drag-item" draggable="true" data-relation="amensalismo">Hongo produciendo antibióticos</div>
+                        <div class="drag-item" draggable="true" data-relation="competencia">Dos pájaros por la misma semilla</div>
+                    </div>
+                    <div class="drop-zones">
+                        <div class="drop-zone" data-type="depredacion">
+                            <strong>Depredación</strong>
+                            <p>Un organismo caza y consume a otro</p>
+                        </div>
+                        <div class="drop-zone" data-type="mutualismo">
+                            <strong>Mutualismo</strong>
+                            <p>Ambas especies se benefician</p>
+                        </div>
+                        <div class="drop-zone" data-type="parasitismo">
+                            <strong>Parasitismo</strong>
+                            <p>Uno se beneficia, otro es dañado</p>
+                        </div>
+                        <div class="drop-zone" data-type="comensalismo">
+                            <strong>Comensalismo</strong>
+                            <p>Uno se beneficia, otro no se ve afectado</p>
+                        </div>
+                        <div class="drop-zone" data-type="amensalismo">
+                            <strong>Amensalismo</strong>
+                            <p>Uno es dañado, otro no se ve afectado</p>
+                        </div>
+                        <div class="drop-zone" data-type="competencia">
+                            <strong>Competencia</strong>
+                            <p>Ambos compiten por recursos</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="btn-container">
+                    <button class="btn" onclick="checkInterDragDrop()">Verificar Respuestas</button>
+                    <button class="btn" onclick="resetInterDragDrop()">Reiniciar</button>
+                </div>
+            `;
+            
+            setupDragAndDrop();
+        }
+
+        function setupDragAndDrop() {
+            const dragItems = document.querySelectorAll('.drag-item');
+            const dropZones = document.querySelectorAll('.drop-zone');
+            
+            dragItems.forEach(item => {
+                item.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', e.target.dataset.relation);
+                    e.target.classList.add('dragging');
+                });
+                
+                item.addEventListener('dragend', (e) => {
+                    e.target.classList.remove('dragging');
+                });
+            });
+            
+            dropZones.forEach(zone => {
+                zone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    zone.classList.add('drag-over');
+                });
+                
+                zone.addEventListener('dragleave', () => {
+                    zone.classList.remove('drag-over');
+                });
+                
+                zone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    zone.classList.remove('drag-over');
+                    
+                    const relation = e.dataTransfer.getData('text/plain');
+                    const draggedElement = document.querySelector(`[data-relation="${relation}"]`);
+                    
+                    if (draggedElement) {
+                        zone.appendChild(draggedElement);
+                        draggedElement.draggable = false;
+                    }
+                });
+            });
+        }
+
+        function checkInterDragDrop() {
+            const dropZones = document.querySelectorAll('.drop-zone');
+            let correct = 0;
+            
+            dropZones.forEach(zone => {
+                const items = zone.querySelectorAll('.drag-item');
+                let zoneCorrect = true;
+                
+                items.forEach(item => {
+                    if (item.dataset.relation !== zone.dataset.type) {
+                        zoneCorrect = false;
+                    }
+                });
+                
+                if (zoneCorrect && items.length > 0) {
+                    zone.classList.add('correct');
+                    correct++;
+                } else if (items.length > 0) {
+                    zone.classList.add('incorrect');
+                }
+            });
+            
+            if (correct === 6) {
+                showNotification('¡Excelente! Todas las respuestas son correctas.', 'success');
+                completeActivity('inter', 0);
+            } else {
+                showNotification(`Has clasificado correctamente ${correct}/6 relaciones. ¡Sigue intentando!`, 'error');
+            }
+        }
+
+        function resetInterDragDrop() {
+            const container = document.getElementById('inter-activity');
+            loadInterDragDrop(container);
+        }
+
+        function loadInterMatching(container) {
+            const definitions = [
+                { term: 'Depredación', def: 'Un organismo caza y consume a otro', id: 'match1' },
+                { term: 'Mutualismo', def: 'Ambas especies se benefician mutuamente', id: 'match2' },
+                { term: 'Parasitismo', def: 'Uno vive a expensas de otro causándole daño', id: 'match3' },
+                { term: 'Comensalismo', def: 'Uno se beneficia sin afectar al otro', id: 'match4' },
+                { term: 'Amensalismo', def: 'Uno perjudica a otro sin recibir beneficio', id: 'match5' },
+                { term: 'Competencia', def: 'Dos especies luchan por los mismos recursos', id: 'match6' }
+            ];
+            
+            container.innerHTML = `
+                <div class="activity-header">
+                    <h3>Actividad 2: Relaciona Términos con Definiciones</h3>
+                    <button class="btn" onclick="closeActivity()">Cerrar</button>
+                </div>
+                <div class="activity-instructions">
+                    Haz clic en un término y luego en su definición correcta para emparejarlos:
+                </div>
+                <div class="matching-container">
+                    <div class="matching-column">
+                        <h4 style="color: var(--primary-color); margin-bottom: 1rem;">Términos</h4>
+                        ${definitions.map(item => `
+                            <div class="matching-item" data-term="${item.id}" onclick="selectMatchItem(this, 'term')">
+                                ${item.term}
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="matching-column">
+                        <h4 style="color: var(--secondary-color); margin-bottom: 1rem;">Definiciones</h4>
+                        ${definitions.map(item => `
+                            <div class="matching-item" data-def="${item.id}" onclick="selectMatchItem(this, 'def')">
+                                ${item.def}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="btn-container">
+                    <button class="btn" onclick="checkInterMatching()">Verificar Respuestas</button>
+                    <button class="btn" onclick="resetInterMatching()">Reiniciar</button>
+                </div>
+            `;
+        }
+
+        let selectedMatchItem = null;
+        let selectedMatchType = null;
+
+        function selectMatchItem(element, type) {
+            if (selectedMatchItem) {
+                selectedMatchItem.classList.remove('selected');
+            }
+            
+            if (type === selectedMatchType) {
+                selectedMatchItem = null;
+                selectedMatchType = null;
+                return;
+            }
+            
+            element.classList.add('selected');
+            selectedMatchItem = element;
+            selectedMatchType = type;
+            
+            if (selectedMatchType === 'def') {
+                const termElement = document.querySelector(`[data-term="${element.dataset.def}"]`);
+                if (termElement && termElement.classList.contains('selected')) {
+                    termElement.classList.add('matched');
+                    element.classList.add('matched');
+                    termElement.onclick = null;
+                    element.onclick = null;
+                    termElement.classList.remove('selected');
+                    element.classList.remove('selected');
+                    selectedMatchItem = null;
+                    selectedMatchType = null;
+                }
+            }
+        }
+
+        function checkInterMatching() {
+            const matched = document.querySelectorAll('.matched').length;
+            const total = 6;
+            
+            if (matched === total) {
+                showNotification('¡Perfecto! Has emparejado todos los términos correctamente.', 'success');
+                completeActivity('inter', 1);
+            } else {
+                showNotification(`Has emparejado correctamente ${matched/2}/${total} términos. ¡Sigue intentando!`, 'error');
+            }
+        }
+
+        function resetInterMatching() {
+            const container = document.getElementById('inter-activity');
+            loadInterMatching(container);
+        }
+
+        function loadInterQuickQuiz(container) {
+            const quickQuestions = [
+                {
+                    question: "El león y la cebra tienen una relación de:",
+                    options: ["Mutualismo", "Depredación", "Comensalismo", "Parasitismo"],
+                    correct: 1
+                },
+                {
+                    question: "Las abejas y las flores se benefician mutuamente, esto es:",
+                    options: ["Parasitismo", "Competencia", "Mutualismo", "Amensalismo"],
+                    correct: 2
+                },
+                {
+                    question: "Un hongo que produce antibióticos que matan bacterias es:",
+                    options: ["Mutualismo", "Amensalismo", "Comensalismo", "Depredación"],
+                    correct: 1
+                },
+                {
+                    question: "Las pulgas en un perro representan:",
+                    options: ["Mutualismo", "Parasitismo", "Comensalismo", "Competencia"],
+                    correct: 1
+                },
+                {
+                    question: "Las rémoras viajan con tiburones sin afectarlos:",
+                    options: ["Comensalismo", "Mutualismo", "Parasitismo", "Depredación"],
+                    correct: 0
+                }
+            ];
+            
+            let currentQuickQuestion = 0;
+            let quickScore = 0;
+            
+            function loadQuickQuestion() {
+                const q = quickQuestions[currentQuickQuestion];
+                const instructionsDiv = container.querySelector('.activity-instructions');
+                instructionsDiv.innerHTML = `
+                    <strong>Pregunta ${currentQuickQuestion + 1}/5:</strong> ${q.question}
+                `;
+                
+                const optionsHtml = q.options.map((opt, index) => `
+                    <div class="quick-quiz-option" onclick="selectQuickOption(${index})">
+                        ${String.fromCharCode(65 + index)}. ${opt}
+                    </div>
+                `).join('');
+                
+                const optionsDiv = container.querySelector('.quick-quiz-options');
+                if (optionsDiv) {
+                    optionsDiv.innerHTML = optionsHtml;
+                }
+            }
+            
+            window.selectQuickOption = function(index) {
+                const q = quickQuestions[currentQuickQuestion];
+                const options = container.querySelectorAll('.quick-quiz-option');
+                
+                options.forEach(opt => opt.classList.remove('selected'));
+                options[index].classList.add('selected');
+                
+                if (index === q.correct) {
+                    quickScore++;
+                    options[index].style.background = 'rgba(0, 255, 136, 0.2)';
+                    showNotification('¡Correcto!', 'success');
+                } else {
+                    options[index].style.background = 'rgba(255, 51, 102, 0.2)';
+                    options[q.correct].style.background = 'rgba(0, 255, 136, 0.2)';
+                    showNotification('Incorrecto. La respuesta correcta está resaltada.', 'error');
+                }
+                
+                setTimeout(() => {
+                    currentQuickQuestion++;
+                    if (currentQuickQuestion < quickQuestions.length) {
+                        loadQuickQuestion();
+                    } else {
+                        showQuickResults();
+                    }
+                }, 2000);
+            };
+            
+            function showQuickResults() {
+                container.innerHTML = `
+                    <div class="activity-header">
+                        <h3>Resultados del Quiz Rápido</h3>
+                        <button class="btn" onclick="closeActivity()">Cerrar</button>
+                    </div>
+                    <div class="text-center" style="padding: 2rem;">
+                        <h2 style="color: var(--primary-color); margin-bottom: 1rem;">Tu Puntuación</h2>
+                        <div style="font-size: 3rem; font-weight: bold; color: var(--secondary-color);">
+                            ${quickScore}/5
+                        </div>
+                        <p style="margin-top: 1rem; font-size: 1.2rem;">
+                            ${quickScore >= 4 ? '¡Excelente trabajo!' : quickScore >= 3 ? 'Buen intento' : 'Necesitas practicar más'}
+                        </p>
+                    </div>
+                `;
+                
+                if (quickScore >= 4) {
+                    completeActivity('inter', 2);
+                }
+            }
+            
+            container.innerHTML = `
+                <div class="activity-header">
+                    <h3>Actividad 3: Quiz Rápido de Relaciones Interespecíficas</h3>
+                    <button class="btn" onclick="closeActivity()">Cerrar</button>
+                </div>
+                <div class="activity-instructions"></div>
+                <div class="quick-quiz-options"></div>
+            `;
+            
+            loadQuickQuestion();
+        }
+
+        function loadInterWordSearch(container) {
+            const words = ['DEPREDACION', 'MUTUALISMO', 'PARASITISMO', 'COMENSALISMO', 'AMENSALISMO', 'COMPETENCIA'];
+            const gridSize = 10;
+            const grid = Array(gridSize).fill().map(() => Array(gridSize).fill(''));
+            
+            // Colocar palabras (simplificado)
+            const positions = [
+                { word: 'DEPREDACION', row: 0, col: 0, dir: 'h' },
+                { word: 'MUTUALISMO', row: 2, col: 1, dir: 'h' },
+                { word: 'PARASITISMO', row: 4, col: 0, dir: 'h' },
+                { word: 'COMENSALISMO', row: 6, col: 0, dir: 'h' },
+                { word: 'AMENSALISMO', row: 8, col: 0, dir: 'h' },
+                { word: 'COMPETENCIA', row: 1, col: 0, dir: 'v' }
+            ];
+            
+            positions.forEach(pos => {
+                for (let i = 0; i < pos.word.length; i++) {
+                    if (pos.dir === 'h') {
+                        if (pos.row < gridSize && pos.col + i < gridSize) {
+                            grid[pos.row][pos.col + i] = pos.word[i];
+                        }
+                    } else {
+                        if (pos.row + i < gridSize && pos.col < gridSize) {
+                            grid[pos.row + i][pos.col] = pos.word[i];
+                        }
+                    }
+                }
+            });
+            
+            // Llenar espacios vacíos
+            for (let i = 0; i < gridSize; i++) {
+                for (let j = 0; j < gridSize; j++) {
+                    if (grid[i][j] === '') {
+                        grid[i][j] = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+                    }
+                }
+            }
+            
+            let selectedCells = [];
+            
+            container.innerHTML = `
+                <div class="activity-header">
+                    <h3>Actividad 4: Sopa de Letras Ecológica</h3>
+                    <button class="btn" onclick="closeActivity()">Cerrar</button>
+                </div>
+                <div class="activity-instructions">
+                    Encuentra las siguientes palabras relacionadas con relaciones interespecíficas:
+                </div>
+                <div class="word-search-grid">
+                    ${grid.map((row, i) => 
+                        row.map((cell, j) => `
+                            <div class="word-search-cell" data-row="${i}" data-col="${j}" onclick="selectWordCell(${i}, ${j})">
+                                ${cell}
+                            </div>
+                        `).join('')
+                    ).join('')}
+                </div>
+                <div class="word-list">
+                    ${words.map(word => `
+                        <div class="word-item" id="word-${word}">${word}</div>
+                    `).join('')}
+                </div>
+                <div class="btn-container">
+                    <button class="btn" onclick="checkWordSearch()">Verificar</button>
+                    <button class="btn" onclick="resetWordSearch()">Reiniciar</button>
+                </div>
+            `;
+            
+            window.selectWordCell = function(row, col) {
+                const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                cell.classList.toggle('selected');
+                
+                const index = selectedCells.findIndex(c => c.row === row && c.col === col);
+                if (index >= 0) {
+                    selectedCells.splice(index, 1);
+                } else {
+                    selectedCells.push({ row, col });
+                }
+            };
+            
+            window.checkWordSearch = function() {
+                if (selectedCells.length >= 30) {
+                    words.forEach(word => {
+                        const wordElement = document.getElementById(`word-${word}`);
+                        if (wordElement) {
+                            wordElement.classList.add('found');
+                        }
+                    });
+                    showNotification('¡Excelente! Has encontrado todas las palabras.', 'success');
+                    completeActivity('inter', 3);
+                } else {
+                    showNotification('Sigue buscando palabras. ¡Ya casi las tienes todas!', 'error');
+                }
+            };
+            
+            window.resetWordSearch = function() {
+                document.querySelectorAll('.word-search-cell').forEach(cell => {
+                    cell.classList.remove('selected', 'found');
+                });
+                document.querySelectorAll('.word-item').forEach(item => {
+                    item.classList.remove('found');
+                });
+                selectedCells = [];
+            };
+        }
+
+        function loadInterFlashcards(container) {
+            const flashcards = [
+                { front: 'Depredación', back: 'Relación donde un organismo caza y consume a otro para alimentarse' },
+                { front: 'Mutualismo', back: 'Interacción donde ambas especies obtienen beneficios' },
+                { front: 'Parasitismo', back: 'Un organismo vive a expensas de otro, causándole daño' },
+                { front: 'Comensalismo', back: 'Una especie se beneficia mientras la otra no se ve afectada' },
+                { front: 'Amensalismo', back: 'Una especie perjudica a otra sin recibir beneficio' },
+                { front: 'Competencia', back: 'Dos especies luchan por los mismos recursos limitados' }
+            ];
+            
+            let currentCard = 0;
+            let studied = 0;
+            
+            function loadCard() {
+                const card = flashcards[currentCard];
+                const frontFace = container.querySelector('.flashcard-face.front');
+                const backFace = container.querySelector('.flashcard-face.back');
+                if (frontFace) frontFace.textContent = card.front;
+                if (backFace) backFace.textContent = card.back;
+                
+                const counterSpan = container.querySelector('.flashcard-controls span');
+                if (counterSpan) {
+                    counterSpan.textContent = `${currentCard + 1}/${flashcards.length}`;
+                }
+            }
+            
+            container.innerHTML = `
+                <div class="activity-header">
+                    <h3>Actividad 5: Flashcards Interactivas</h3>
+                    <button class="btn" onclick="closeActivity()">Cerrar</button>
+                </div>
+                <div class="activity-instructions">
+                    Haz clic en la tarjeta para ver la respuesta. Usa los botones para navegar.
+                </div>
+                <div class="flashcard-container">
+                    <div class="flashcard" id="flashcard" onclick="flipCard()">
+                        <div class="flashcard-face front">
+                            ${flashcards[0].front}
+                        </div>
+                        <div class="flashcard-face back">
+                            ${flashcards[0].back}
+                        </div>
+                    </div>
+                </div>
+                <div class="flashcard-controls">
+                    <button class="btn" onclick="previousCard()">Anterior</button>
+                    <span style="margin: 0 2rem; color: var(--primary-color);">${currentCard + 1}/${flashcards.length}</span>
+                    <button class="btn" onclick="nextCard()">Siguiente</button>
+                </div>
+                <div class="btn-container">
+                    <button class="btn" onclick="markAsStudied()">Marcar como estudiada</button>
+                    <button class="btn" onclick="completeFlashcards()">Completar actividad</button>
+                </div>
+            `;
+            
+            window.flipCard = function() {
+                const flashcard = document.getElementById('flashcard');
+                if (flashcard) {
+                    flashcard.classList.toggle('flipped');
+                }
+            };
+            
+            window.previousCard = function() {
+                currentCard = (currentCard - 1 + flashcards.length) % flashcards.length;
+                loadCard();
+                const flashcard = document.getElementById('flashcard');
+                if (flashcard) {
+                    flashcard.classList.remove('flipped');
+                }
+            };
+            
+            window.nextCard = function() {
+                currentCard = (currentCard + 1) % flashcards.length;
+                loadCard();
+                const flashcard = document.getElementById('flashcard');
+                if (flashcard) {
+                    flashcard.classList.remove('flipped');
+                }
+            };
+            
+            window.markAsStudied = function() {
+                studied++;
+                showNotification(`Tarjeta marcada como estudiada (${studied}/${flashcards.length})`, 'success');
+                if (studied === flashcards.length) {
+                    completeActivity('inter', 4);
+                }
+            };
+            
+            window.completeFlashcards = function() {
+                if (confirm('¿Has estudiado todas las flashcards?')) {
+                    completeActivity('inter', 4);
+                }
+            };
+        }
+
+        function loadInterSorting(container) {
+            container.innerHTML = `
+                <div class="activity-header">
+                    <h3>Actividad 6: Ordenamiento del Proceso de Depredación</h3>
+                    <button class="btn" onclick="closeActivity()">Cerrar</button>
+                </div>
+                <div class="activity-instructions">
+                    Ordena las etapas del proceso de depredación en el orden correcto:
+                </div>
+                <div class="sorting-container">
+                    <div class="sorting-item" draggable="true">
+                        <span class="sort-handle">☰</span>
+                        <span>Búsqueda de presa</span>
+                    </div>
+                    <div class="sorting-item" draggable="true">
+                        <span class="sort-handle">☰</span>
+                        <span>Aproximación sigilosa</span>
+                    </div>
+                    <div class="sorting-item" draggable="true">
+                        <span class="sort-handle">☰</span>
+                        <span>Ataque y captura</span>
+                    </div>
+                    <div class="sorting-item" draggable="true">
+                        <span class="sort-handle">☰</span>
+                        <span>Consumo</span>
+                    </div>
+                    <div class="sorting-item" draggable="true">
+                        <span class="sort-handle">☰</span>
+                        <span>Digestión</span>
+                    </div>
+                </div>
+                <div class="btn-container">
+                    <button class="btn" onclick="completeActivity('inter', 5)">Completar Actividad</button>
+                </div>
+            `;
+            
+            setupSorting();
+        }
+
+        function setupSorting() {
+            const items = document.querySelectorAll('.sorting-item');
+            let draggedItem = null;
+            
+            items.forEach(item => {
+                item.addEventListener('dragstart', (e) => {
+                    draggedItem = item;
+                    item.style.opacity = '0.5';
+                });
+                
+                item.addEventListener('dragend', () => {
+                    item.style.opacity = '';
+                });
+                
+                item.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    const container = item.parentElement;
+                    const afterElement = getDragAfterElement(container, e.clientY);
+                    if (afterElement == null) {
+                        container.appendChild(draggedItem);
+                    } else {
+                        container.insertBefore(draggedItem, afterElement);
+                    }
+                });
+            });
+        }
+
+        function getDragAfterElement(container, y) {
+            const draggableElements = [...container.querySelectorAll('.sorting-item:not(.dragging)')];
+            
+            return draggableElements.reduce((closest, child) => {
+                const box = child.getBoundingClientRect();
+                const offset = y - box.top - box.height / 2;
+                
+                if (offset < 0 && offset > closest.offset) {
+                    return { offset: offset, element: child };
+                } else {
+                    return closest;
+                }
+            }, { offset: Number.NEGATIVE_INFINITY }).element;
+        }
+
+        function loadInterVisual(container) {
+            container.innerHTML = `
+                <div class="activity-header">
+                    <h3>Actividad 7: Identificación Visual</h3>
+                    <button class="btn" onclick="closeActivity()">Cerrar</button>
+                </div>
+                <div class="activity-instructions">
+                    Identifica el tipo de relación en cada imagen:
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin: 2rem 0;">
+                    <div class="text-center">
+                        <div style="width: 150px; height: 150px; background: rgba(0,255,204,0.1); border: 2px solid var(--primary-color); border-radius: 10px; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 3rem;">
+                            🦁🦓
+                        </div>
+                        <p style="margin-top: 1rem;">León y cebra</p>
+                        <select style="margin-top: 0.5rem; padding: 0.5rem; background: var(--bg-medium); color: var(--text-light); border: 1px solid var(--primary-color); border-radius: 5px;">
+                            <option>Selecciona...</option>
+                            <option>Depredación</option>
+                            <option>Mutualismo</option>
+                            <option>Parasitismo</option>
+                        </select>
+                    </div>
+                    <div class="text-center">
+                        <div style="width: 150px; height: 150px; background: rgba(0,255,204,0.1); border: 2px solid var(--primary-color); border-radius: 10px; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 3rem;">
+                            🐝🌻
+                        </div>
+                        <p style="margin-top: 1rem;">Abeja y flor</p>
+                        <select style="margin-top: 0.5rem; padding: 0.5rem; background: var(--bg-medium); color: var(--text-light); border: 1px solid var(--primary-color); border-radius: 5px;">
+                            <option>Selecciona...</option>
+                            <option>Depredación</option>
+                            <option>Mutualismo</option>
+                            <option>Parasitismo</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="btn-container">
+                    <button class="btn" onclick="completeActivity('inter', 6)">Completar Actividad</button>
+                </div>
+            `;
+        }
+
+        function loadInterNetwork(container) {
+            container.innerHTML = `
+                <div class="activity-header">
+                    <h3>Actividad 8: Construcción de Red Trófica</h3>
+                    <button class="btn" onclick="closeActivity()">Cerrar</button>
+                </div>
+                <div class="activity-instructions">
+                    Conecta los organismos para formar una red trófica correcta:
+                </div>
+                <div class="text-center" style="padding: 2rem;">
+                    <div style="background: rgba(255,255,255,0.05); border-radius: 10px; padding: 2rem;">
+                        <h4 style="color: var(--primary-color); margin-bottom: 1rem;">Organismos disponibles:</h4>
+                        <p>🌱 Plantas → 🐛 Herbívoros → 🐍 Carnívoros pequeños → 🦅 Carnívoros grandes</p>
+                        <p style="margin-top: 1rem;">Dibuja las flechas de energía en tu cuaderno y luego completa esta actividad.</p>
+                    </div>
+                </div>
+                <div class="btn-container">
+                    <button class="btn" onclick="completeActivity('inter', 7)">Completar Actividad</button>
+                </div>
+            `;
+        }
+
+        function loadInterCase(container) {
+            container.innerHTML = `
+                <div class="activity-header">
+                    <h3>Actividad 9: Análisis de Ecosistema</h3>
+                    <button class="btn" onclick="closeActivity()">Cerrar</button>
+                </div>
+                <div class="activity-instructions">
+                    Analiza el siguiente ecosistema e identifica todas las relaciones:
+                </div>
+                <div style="padding: 2rem;">
+                    <div style="background: rgba(255,255,255,0.05); border-radius: 10px; padding: 2rem; margin-bottom: 2rem;">
+                        <h4 style="color: var(--primary-color);">Ecosistema: Bosque Templado</h4>
+                        <p style="margin-top: 1rem;"><strong>Organismos presentes:</strong></p>
+                        <ul style="margin-left: 2rem; margin-top: 0.5rem;">
+                            <li>🌳 Árboles (robles, pinos)</li>
+                            <li>🦌 Ciervos</li>
+                            <li>🐺 Lobos</li>
+                            <li>🐿️ Ardillas</li>
+                            <li>🍄 Hongos</li>
+                            <li>🌿 Plantas pequeñas</li>
+                            <li>🐛 Insectos</li>
+                            <li>🦅 Águilas</li>
+                        </ul>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.05); border-radius: 10px; padding: 2rem;">
+                        <h4 style="color: var(--secondary-color);">Instrucciones:</h4>
+                        <p>Identifica y escribe al menos 5 relaciones diferentes que existen en este ecosistema, clasificándolas como interespecíficas o intraespecíficas.</p>
+                        <textarea style="width: 100%; height: 150px; margin-top: 1rem; padding: 1rem; background: var(--bg-medium); color: var(--text-light); border: 1px solid var(--primary-color); border-radius: 5px; resize: vertical;" placeholder="Escribe tus respuestas aquí..."></textarea>
+                    </div>
+                </div>
+                <div class="btn-container">
+                    <button class="btn" onclick="completeActivity('inter', 8)">Completar Actividad</button>
+                </div>
+            `;
+        }
+
+        function loadInterChallenge(container) {
+            container.innerHTML = `
+                <div class="activity-header">
+                    <h3>Actividad 10: Desafío Final</h3>
+                    <button class="btn" onclick="closeActivity()">Cerrar</button>
+                </div>
+                <div class="activity-instructions">
+                    Demuestra todo lo que has aprendido sobre relaciones interespecíficas:
+                </div>
+                <div style="padding: 2rem;">
+                    <div style="background: rgba(255,255,255,0.05); border-radius: 10px; padding: 2rem;">
+                        <h4 style="color: var(--primary-color);">Desafío:</h4>
+                        <p style="margin-top: 1rem;">Crea un ecosistema imaginario con al menos 10 organismos diferentes y describe:</p>
+                        <ol style="margin-left: 2rem; margin-top: 1rem;">
+                            <li>Al menos 3 relaciones de depredación</li>
+                            <li>Al menos 2 relaciones de mutualismo</li>
+                            <li>Al menos 1 relación de parasitismo</li>
+                            <li>Al menos 1 relación de comensalismo</li>
+                            <li>Al menos 1 relación de competencia</li>
+                        </ol>
+                        <textarea style="width: 100%; height: 200px; margin-top: 1rem; padding: 1rem; background: var(--bg-medium); color: var(--text-light); border: 1px solid var(--primary-color); border-radius: 5px; resize: vertical;" placeholder="Describe tu ecosistema aquí..."></textarea>
+                    </div>
+                </div>
+                <div class="btn-container">
+                    <button class="btn" onclick="completeActivity('inter', 9)">Completar Desafío</button>
+                </div>
+            `;
+        }
+
+        // ===== FUNCIONES AUXILIARES =====
+        function closeActivity() {
+            document.querySelectorAll('.activity-container').forEach(container => {
+                container.classList.remove('active');
+            });
+        }
+
+        function completeActivity(concept, index) {
+            appState.activityProgress[concept][index] = true;
+            
+            // Actualizar UI
+            const statusIcon = document.getElementById(`${concept}-${index}-status`);
+            const statusText = document.getElementById(`${concept}-${index}-text`);
+            const activityCard = statusIcon?.closest('.activity-card');
+            
+            if (statusIcon) {
+                statusIcon.classList.add('completed');
+            }
+            if (statusText) {
+                statusText.textContent = 'Completado';
+            }
+            if (activityCard) {
+                activityCard.classList.add('completed');
+            }
+            
+            // Actualizar progreso
+            updateProgress(concept);
+            
+            // Guardar en localStorage
+            localStorage.setItem('ecoquiz_activities', JSON.stringify(appState.activityProgress));
+            
+            showNotification('¡Actividad completada con éxito!', 'success');
+        }
+
+        function updateProgress(concept) {
+            const completed = appState.activityProgress[concept].filter(a => a).length;
+            const total = appState.activityProgress[concept].length;
+            const percentage = Math.round((completed / total) * 100);
+            
+            const progressSpan = document.getElementById(`${concept}-progress`);
+            const progressBar = document.getElementById(`${concept}-progress-bar`);
+            
+            if (progressSpan) {
+                progressSpan.textContent = `${completed}/${total}`;
+            }
+            if (progressBar) {
+                progressBar.style.width = `${percentage}%`;
+                progressBar.textContent = `${percentage}%`;
+            }
+        }
+
+        function updateAllProgress() {
+            ['inter', 'intra', 'ecosystem'].forEach(concept => {
+                updateProgress(concept);
+            });
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            if (notification) {
+                notification.textContent = message;
+                notification.className = `notification ${type} show`;
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        // ===== LEADERBOARD =====
+        function loadLeaderboard() {
+            const saved = localStorage.getItem('ecoquiz_leaderboard');
+            if (saved) {
+                try {
+                    appState.leaderboard = JSON.parse(saved);
+                } catch (e) {
+                    appState.leaderboard = [];
+                }
+            }
+            updateLeaderboardDisplay();
+        }
+
+        function saveLeaderboard() {
+            localStorage.setItem('ecoquiz_leaderboard', JSON.stringify(appState.leaderboard));
+        }
+
+        function updateLeaderboardDisplay() {
+            const tbody = document.getElementById('leaderboardBody');
+            tbody.innerHTML = '';
+            
+            // Ordenar por puntuación descendente
+            appState.leaderboard.sort((a, b) => b.score - a.score);
+            
+            // Mostrar top 10
+            appState.leaderboard.slice(0, 10).forEach((entry, index) => {
+                const row = document.createElement('tr');
+                
+                let rankDisplay = `<span class="rank-medal rank-${index + 1}">${index + 1}</span>`;
+                if (index > 2) {
+                    rankDisplay = `<span style="margin-right: 1rem; font-weight: bold;">${index + 1}</span>`;
+                }
+                
+                row.innerHTML = `
+                    <td>${rankDisplay}</td>
+                    <td>${entry.name}</td>
+                    <td>${entry.score}</td>
+                    <td>${entry.correct}/20</td>
+                    <td>${entry.time}</td>
+                    <td>${entry.date}</td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            if (appState.leaderboard.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; opacity: 0.7;">No hay registros aún. ¡Sé el primero!</td></tr>';
+            }
+        }
+
+        function loadActivityProgress() {
+            const saved = localStorage.getItem('ecoquiz_activities');
+            if (saved) {
+                try {
+                    appState.activityProgress = JSON.parse(saved);
+                    
+                    // Actualizar UI
+                    Object.keys(appState.activityProgress).forEach(concept => {
+                        appState.activityProgress[concept].forEach((completed, index) => {
+                            if (completed) {
+                                const statusIcon = document.getElementById(`${concept}-${index}-status`);
+                                const statusText = document.getElementById(`${concept}-${index}-text`);
+                                const activityCard = statusIcon?.closest('.activity-card');
+                                
+                                if (statusIcon) {
+                                    statusIcon.classList.add('completed');
+                                }
+                                if (statusText) {
+                                    statusText.textContent = 'Completado';
+                                }
+                                if (activityCard) {
+                                    activityCard.classList.add('completed');
+                                }
+                            }
+                        });
+                    });
+                    
+                    updateAllProgress();
+                } catch (e) {
+                    console.error('Error loading activity progress:', e);
+                }
+            }
+        }
+
+        // ===== IMPLEMENTACIONES SIMPLIFICADAS PARA LAS DEMÁS ACTIVIDADES =====
+        function loadIntraClassification(container) {
+            container.innerHTML = `
+                <div class="activity-header">
+                    <h3>Actividad 1: Clasificación Social</h3>
+                    <button class="btn" onclick="closeActivity()">Cerrar</button>
+                </div>
+                <div class="activity-instructions">
+                    Clasifica los siguientes comportamientos como cooperación, competencia, territorialidad o jerarquía:
+                </div>
+                <div style="padding: 2rem;">
+                    <div style="background: rgba(255,255,255,0.05); border-radius: 10px; padding: 1.5rem; margin-bottom: 1rem;">
+                        <p><strong>1.</strong> Lobos cazando en manada</p>
+                        <select style="margin-left: 1rem; padding: 0.5rem; background: var(--bg-medium); color: var(--text-light); border: 1px solid var(--primary-color); border-radius: 5px;">
+                            <option>Selecciona...</option>
+                            <option>Cooperación</option>
+                            <option>Competencia</option>
+                            <option>Territorialidad</option>
+                            <option>Jerarquía</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="btn-container">
+                    <button class="btn" onclick="completeActivity('intra', 0)">Completar Actividad</button>
+                </div>
+            `;
+        }
+
+        function loadIntraHierarchy(container) {
+            container.innerHTML = `
+                <div class="activity-header">
+                    <h3>Actividad 2: Jerarquías Animales</h3>
+                    <button class="btn" onclick="closeActivity()">Cerrar</button>
+                </div>
+                <div class="activity-instructions">
+                    Ordena la jerarquía de una manada de lobos desde el más dominante hasta el menos dominante:
+                </div>
+                <div class="sorting-container">
+                    <div class="sorting-item" draggable="true">
+                        <span class="sort-handle">☰</span>
+                        <span>Lobo alfa (macho)</span>
+                    </div>
+                    <div class="sorting-item" draggable="true">
+                        <span class="sort-handle">☰</span>
+                        <span>Loba alfa (hembra)</span>
+                    </div>
+                    <div class="sorting-item" draggable="true">
+                        <span class="sort-handle">☰</span>
+                        <span>Lobos subordinados</span>
+                    </div>
+                    <div class="sorting-item" draggable="true">
+                        <span class="sort-handle">☰</span>
+                        <span>Lobos omega</span>
+                    </div>
+                </div>
+                <div class="btn-container">
+                    <button class="btn" onclick="completeActivity('intra', 1)">Completar Actividad</button>
+                </div>
+            `;
+            setupSorting();
+        }
+
+        function loadIntraTerritory(container) {
+            container.innerHTML = `
+                <div class="activity-header">
+                    <h3>Actividad 3: Territorialidad Virtual</h3>
+                    <button class="btn" onclick="closeActivity()">Cerrar</button>
+                </div>
+                <div class="activity-instructions">
+                    Marca en el mapa dónde establecerías tu territorio si fueras un animal:
+                </div>
+                <div class="text-center" style="padding: 2rem;">
+                    <div style="width: 400px; height: 300px; background: rgba(0,255,204,0.1); border: 2px solid var(--primary-color); border-radius: 10px; margin: 0 auto; position: relative; cursor: crosshair;" onclick="markTerritory(event)">
+                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--primary-color);">Haz clic para marcar territorio</div>
+                    </div>
+                </div>
+                <div class="btn-container">
+                    <button class="btn" onclick="completeActivity('intra', 2)">Completar Actividad</button>
+                </div>
+            `;
+        }
+
+        function markTerritory(event) {
+            const marker = document.createElement('div');
+            marker.style.position = 'absolute';
+            marker.style.width = '20px';
+            marker.style.height = '20px';
+            marker.style.background = 'var(--error-color)';
+            marker.style.borderRadius = '50%';
+            marker.style.left = (event.offsetX - 10) + 'px';
+            marker.style.top = (event.offsetY - 10) + 'px';
+            event.target.appendChild(marker);
+        }
+
+        function loadIntraCommunication(container) {
+            container.innerHTML = `
+                <div class="activity-header">
+                    <h3>Actividad 4: Comunicación Animal</h3>
+                    <button class="btn" onclick="closeActivity()">Cerrar</button>
+                </div>
+                <div class="activity-instructions">
+                    Identifica los tipos de comunicación:
+                </div>
+                <div style="padding: 2rem;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                        <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 10px;">
+                            <h4 style="color: var(--primary-color);">Visual</h4>
+                            <p>Danza de las abejas, despliegues de plumas</p>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 10px;">
+                            <h4 style="color: var(--secondary-color);">Auditiva</h4>
+                            <p>Cantos de pájaros, ladridos</p>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 10px;">
+                            <h4 style="color: var(--accent-color);">Química</h4>
+                            <p>Feromonas, marcas de olor</p>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 10px;">
+                            <h4 style="color: var(--success-color);">Táctil</h4>
+                            <p>Acariciarse, grooming</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="btn-container">
+                    <button class="btn" onclick="completeActivity('intra', 3)">Completar Actividad</button>
+                </div>
+            `;
+        }
+
+        function loadIntraCooperation(container) {
+            container.innerHTML = `
+                <div class="activity-header">
+                    <h3>Actividad 5: Cooperación en Colonias</h3>
+                    <button class="btn" onclick="closeActivity()">Cerrar</button>
+                </div>
+                <div class="activity-instructions">
+                    Asigna los roles correctos en una colonia de hormigas:
+                </div>
+                <div style="padding: 2rem;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                        <div>
+                            <h4 style="color: var(--primary-color);">Roles:</h4>
+                            <p>• Reina</p>
+                            <p>• Obreras</p>
+                            <p>• Soldados</p>
+                            <p>• Zánganos</p>
+                        </div>
+                        <div>
+                            <h4 style="color: var(--secondary-color);">Funciones:</h4>
+                            <p>• Poner huevos</p>
+                            <p>• Recoger alimento</p>
+                            <p>• Defender la colonia</p>
+                            <p>• Fecundar a la reina</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="btn-container">
+                    <button class="btn" onclick="completeActivity('intra', 4)">Completar Actividad</button>
+                </div>
+            `;
+        }
+
+        function loadIntraCompetition(container) {
+            container.innerHTML = `
+                <div class="activity-header">
+                    <h3>Actividad 6: Competencia por Recursos</h3>
+                    <button class="btn" onclick="closeActivity()">Cerrar</button>
+                </div>
+                <div class="activity-instructions">
+                    Simula una competencia por recursos limitados:
+                </div>
+                <div class="text-center" style="padding: 2rem;">
+                    <div style="background: rgba(255,255,255,0.05); border-radius: 10px; padding: 2rem;">
+                        <h4 style="color: var(--primary-color);">Recursos disponibles:</h4>
+                        <p style="font-size: 2rem; margin: 1rem 0;">🍎🍎🍎🍎🍎</p>
+                        <p>5 manzanas para 10 animales</p>
+                        <p style="margin-top: 1rem;">¿Qué sucede cuando los recursos son limitados?</p>
+                        <textarea style="width: 100%; height: 100px; margin-top: 1rem; padding: 1rem; background: var(--bg-medium); color: var(--text-light); border: 1px solid var(--primary-color); border-radius: 5px;" placeholder="Describe los resultados..."></textarea>
+                    </div>
+                </div>
+                <div class="btn-container">
+                    <button class="btn" onclick="completeActivity('intra', 5)">Completar Actividad</button>
+                </div>
+            `;
+        }
+
+        function loadIntraMating(container) {
+            container.innerHTML = `
+                <div class="activity-header">
+                    <h3>Actividad 7: Apareamiento y Selección</h3>
+                    <button class="btn" onclick="closeActivity()">Cerrar</button>
+                </div>
+                <div class="activity-instructions">
+                    Identifica comportamientos de cortejo:
+                </div>
+                <div style="padding: 2rem;">
+                    <div style="background: rgba(255,255,255,0.05); border-radius: 10px; padding: 1.5rem;">
+                        <h4 style="color: var(--primary-color);">Ejemplos de cortejo:</h4>
+                        <ul style="margin-left: 2rem; margin-top: 1rem;">
+                            <li>Pájaros cantando para atraer a las hembras</li>
+                            <li>Pavos reales desplegando sus plumas</li>
+                            <li>Ciervos peleando por las hembras</li>
+                            <li>Peces construyendo nidos</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="btn-container">
+                    <button class="btn" onclick="completeActivity('intra', 6)">Completar Actividad</button>
+                </div>
+            `;
+        }
+
+        function loadIntraParental(container) {
+            container.innerHTML = `
+                <div class="activity-header">
+                    <h3>Actividad 8: Cuidado Parental</h3>
+                    <button class="btn" onclick="closeActivity()">Cerrar</button>
+                </div>
+                <div class="activity-instructions">
+                    Clasifica las estrategias de cuidado parental:
+                </div>
+                <div style="padding: 2rem;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                        <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 10px;">
+                            <h4 style="color: var(--primary-color);">Cuidado intensivo</h4>
+                            <p>Aves mamíferos alimentando crías</p>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 10px;">
+                            <h4 style="color: var(--secondary-color);">Cuidado mínimo</h4>
+                            <p>Tortugas dejando huevos en la playa</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="btn-container">
+                    <button class="btn" onclick="completeActivity('intra', 7)">Completar Actividad</button>
+                </div>
+            `;
+        }
+
+        function loadIntraMigration(container) {
+            container.innerHTML = `
+                <div class="activity-header">
+                    <h3>Actividad 9: Migración en Grupo</h3>
+                    <button class="btn" onclick="closeActivity()">Cerrar</button>
+                </div>
+                <div class="activity-instructions">
+                    Organiza una migración de aves:
+                </div>
+                <div class="text-center" style="padding: 2rem;">
+                    <div style="font-size: 3rem; margin: 2rem 0;">
+                        🦅➡️🦅➡️🦅➡️🦅
+                    </div>
+                    <p>Las aves migran en formación V para ahorrar energía</p>
+                </div>
+                <div class="btn-container">
+                    <button class="btn" onclick="completeActivity('intra', 8)">Completar Actividad</button>
+                </div>
+            `;
+        }
+
+        function loadIntraSimulation(container) {
+            container.innerHTML = `
+                <div class="activity-header">
+                    <h3>Actividad 10: Simulación de Población</h3>
+                    <button class="btn" onclick="closeActivity()">Cerrar</button>
+                </div>
+                <div class="activity-instructions">
+                    Maneja una población considerando factores intraespecíficos:
+                </div>
+                <div style="padding: 2rem;">
+                    <div style="background: rgba(255,255,255,0.05); border-radius: 10px; padding: 2rem;">
+                        <h4 style="color: var(--primary-color);">Factores a considerar:</h4>
+                        <ul style="margin-left: 2rem; margin-top: 1rem;">
+                            <li>Competencia por alimento</li>
+                            <li>Enfermedades</li>
+                            <li>Disponibilidad de parejas</li>
+                            <li>Espacio territorial</li>
+                        </ul>
+                        <p style="margin-top: 1rem;">¿Cómo afectarían estos factores a una población de conejos?</p>
+                        <textarea style="width: 100%; height: 100px; margin-top: 1rem; padding: 1rem; background: var(--bg-medium); color: var(--text-light); border: 1px solid var(--primary-color); border-radius: 5px;" placeholder="Describe tus ideas..."></textarea>
+                    </div>
+                </div>
+                <div class="btn-container">
+                    <button class="btn" onclick="completeActivity('intra', 9)">Completar Actividad</button>
+                </div>
+            `;
+        }
+
+        // ===== ACTIVIDADES DE ECOSISTEMA =====
+        function loadEcoComponents(container) {
+            container.innerHTML = `
+                <div class="activity-header">
+                    <h3>Actividad 1: Componentes del Ecosistema</h3>
+                    <button class="btn" onclick="closeActivity()">Cerrar</button>
+                </div>
+                <div class="activity-instructions">
+                    Clasifica los componentes como bióticos o abióticos:
+                </div>
+                <div class="drag-drop-container">
+                    <div class="drag-items">
+                        <div class="drag-item" draggable="true" data-type="biotico">Plantas</div>
+                        <div class="drag-item" draggable="true" data-type="biotico">Animales</div>
+                        <div class="drag-item" draggable="true" data-type="biotico">Hongos</div>
+                        <div class="drag-item" draggable="true" data-type="abiotico">Agua</div>
+                        <div class="drag-item" draggable="true" data-type="abiotico">Sol</div>
+                        <div class="drag-item" draggable="true" data-type="abiotico">Rocas</div>
+                    </div>
+                    <div class="drop-zones">
+                        <div class="drop-zone" data-type="biotico">
+                            <strong>Componentes Bióticos</strong>
+                            <p>Seres vivos</p>
+                        </div>
+                        <div class="drop-zone" data-type="abiotico">
+                            <strong>Componentes Abióticos</strong>
+                            <p>Físicos y químicos</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="btn-container">
+                    <button class="btn" onclick="completeActivity('ecosystem', 0)">Completar Actividad</button>
+                </div>
+            `;
+            setupDragAndDrop();
+        }
+
+        function loadEcoChains(container) {
+            container.innerHTML = `
+                <div class="activity-header">
+                    <h3>Actividad 2: Cadenas Alimenticias</h3>
+                    <button class="btn" onclick="closeActivity()">Cerrar</button>
+                </div>
+                <div class="activity-instructions">
+                    Construye una cadena alimenticia correcta:
+                </div>
+                <div class="text-center" style="padding: 2rem;">
+                    <div style="font-size: 2rem; margin: 2rem 0;">
+                        🌱 ➡️ 🐛 ➡️ 🐦 ➡️ 🦅
+                    </div>
+                    <p>Productor → Consumidor primario → Consumidor secundario → Consumidor terciario</p>
+                </div>
+                <div class="btn-container">
+                    <button class="btn" onclick="completeActivity('ecosystem', 1)">Completar Actividad</button>
+                </div>
+            `;
+        }
+
+        function loadEcoTrophic(container) {
+            container.innerHTML = `
+                <div class="activity-header">
+                    <h3>Actividad 3: Niveles Tróficos</h3>
+                    <button class="btn" onclick="closeActivity()">Cerrar</button>
+                </div>
+                <div class="sorting-container">
+                    <div class="sorting-item" draggable="true">
+                        <span class="sort-handle">☰</span>
+                        <span>Productores (plantas)</span>
+                    </div>
+                    <div class="sorting-item" draggable="true">
+                        <span class="sort-handle">☰</span>
+                        <span>Consumidores primarios (herbívoros)</span>
+                    </div>
+                    <div class="sorting-item" draggable="true">
+                        <span class="sort-handle">☰</span>
+                        <span>Consumidores secundarios (carnívoros)</span>
+                    </div>
+                    <div class="sorting-item" draggable="true">
+                        <span class="sort-handle">☰</span>
+                        <span>Descomponedores (hongos, bacterias)</span>
+                    </div>
+                </div>
+                <div class="btn-container">
+                    <button class="btn" onclick="completeActivity('ecosystem', 2)">Completar Actividad</button>
+                </div>
+            `;
+            setupSorting();
+        }
+
+        function loadEcoCycles(container) {
+            container.innerHTML = `
+                <div class="activity-header">
+                    <h3>Actividad 4: Ciclos Biogeoquímicos</h3>
+                    <button class="btn" onclick="closeActivity()">Cerrar</button>
+                </div>
+                <div class="sorting-container">
+                    <div class="sorting-item" draggable="true">
+                        <span class="sort-handle">☰</span>
+                        <span>Fotosíntesis (CO₂ → O₂)</span>
+                    </div>
+                    <div class="sorting-item" draggable="true">
+                        <span class="sort-handle">☰</span>
+                        <span>Respiración (O₂ → CO₂)</span>
+                    </div>
+                    <div class="sorting-item" draggable="true">
+                        <span class="sort-handle">☰</span>
+                        <span>Descomposición</span>
+                    </div>
+                    <div class="sorting-item" draggable="true">
+                        <span class="sort-handle">☰</span>
+                        <span>Combustión</span>
+                    </div>
+                </div>
+                <div class="btn-container">
+                    <button class="btn" onclick="completeActivity('ecosystem', 3)">Completar Actividad</button>
+                </div>
+            `;
+            setupSorting();
+        }
+
+        function loadEcoEnergy(container) {
+            container.innerHTML = `
+                <div class="activity-header">
+                    <h3>Actividad 5: Flujo de Energía</h3>
+                    <button class="btn" onclick="closeActivity()">Cerrar</button>
+                </div>
+                <div class="activity-instructions">
+                    Traza el flujo de energía en un ecosistema:
+                </div>
+                <div class="text-center" style="padding: 2rem;">
+                    <div style="background: rgba(255,255,255,0.05); border-radius: 10px; padding: 2rem;">
+                        <h4 style="color: var(--primary-color);">Regla del 10%</h4>
+                        <p>Solo el 10% de la energía se transfiere entre niveles tróficos</p>
+                        <p style="margin-top: 1rem;">1000 kcal → 100 kcal → 10 kcal → 1 kcal</p>
+                    </div>
+                </div>
+                <div class="btn-container">
+                    <button class="btn" onclick="completeActivity('ecosystem', 4)">Completar Actividad</button>
+                </div>
+            `;
+        }
+
+        function loadEcoBiomes(container) {
+            container.innerHTML = `
+                <div class="activity-header">
+                    <h3>Actividad 6: Biomas del Mundo</h3>
+                    <button class="btn" onclick="closeActivity()">Cerrar</button>
+                </div>
+                <div class="activity-instructions">
+                    Identifica características de cada bioma:
+                </div>
+                <div style="padding: 2rem;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                        <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 10px;">
+                            <h4 style="color: var(--primary-color);">🌴 Selva Tropical</h4>
+                            <p>Alta biodiversidad, clima cálido y húmedo</p>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 10px;">
+                            <h4 style="color: var(--secondary-color);">🏜️ Desierto</h4>
+                            <p>Precipitación escasa, temperaturas extremas</p>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 10px;">
+                            <h4 style="color: var(--accent-color);">🌲 Taiga</h4>
+                            <p>Bosque de coníferas, inviernos largos</p>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 10px;">
+                            <h4 style="color: var(--success-color);">🌊 Océano</h4>
+                            <p>Agua salada, mayor bioma del planeta</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="btn-container">
+                    <button class="btn" onclick="completeActivity('ecosystem', 5)">Completar Actividad</button>
+                </div>
+            `;
+        }
+
+        function loadEcoSuccession(container) {
+            container.innerHTML = `
+                <div class="activity-header">
+                    <h3>Actividad 7: Sucesión Ecológica</h3>
+                    <button class="btn" onclick="closeActivity()">Cerrar</button>
+                </div>
+                <div class="sorting-container">
+                    <div class="sorting-item" draggable="true">
+                        <span class="sort-handle">☰</span>
+                        <span>Suelo desnudo</span>
+                    </div>
+                    <div class="sorting-item" draggable="true">
+                        <span class="sort-handle">☰</span>
+                        <span>Líquenes y musgos</span>
+                    </div>
+                    <div class="sorting-item" draggable="true">
+                        <span class="sort-handle">☰</span>
+                        <span>Hierbas y arbustos</span>
+                    </div>
+                    <div class="sorting-item" draggable="true">
+                        <span class="sort-handle">☰</span>
+                        <span>Árboles pequeños</span>
+                    </div>
+                    <div class="sorting-item" draggable="true">
+                        <span class="sort-handle">☰</span>
+                        <span>Bosque maduro</span>
+                    </div>
+                </div>
+                <div class="btn-container">
+                    <button class="btn" onclick="completeActivity('ecosystem', 6)">Completar Actividad</button>
+                </div>
+            `;
+            setupSorting();
+        }
+
+        function loadEcoBiodiversity(container) {
+            container.innerHTML = `
+                <div class="activity-header">
+                    <h3>Actividad 8: Biodiversidad</h3>
+                    <button class="btn" onclick="closeActivity()">Cerrar</button>
+                </div>
+                <div class="activity-instructions">
+                    Calcula un índice de biodiversidad simple:
+                </div>
+                <div style="padding: 2rem;">
+                    <div style="background: rgba(255,255,255,0.05); border-radius: 10px; padding: 2rem;">
+                        <h4 style="color: var(--primary-color);">Ejemplo:</h4>
+                        <p>Ecosistema A: 10 especies, 100 individuos totales</p>
+                        <p>Ecosistema B: 5 especies, 100 individuos totales</p>
+                        <p style="margin-top: 1rem;">¿Cuál tiene mayor biodiversidad?</p>
+                        <select style="margin-top: 1rem; padding: 0.5rem; background: var(--bg-medium); color: var(--text-light); border: 1px solid var(--primary-color); border-radius: 5px;">
+                            <option>Selecciona...</option>
+                            <option>Ecosistema A</option>
+                            <option>Ecosistema B</option>
+                            <option>Ambos iguales</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="btn-container">
+                    <button class="btn" onclick="completeActivity('ecosystem', 7)">Completar Actividad</button>
+                </div>
+            `;
+        }
+
+        function loadEcoImpact(container) {
+            container.innerHTML = `
+                <div class="activity-header">
+                    <h3>Actividad 9: Impacto Humano</h3>
+                    <button class="btn" onclick="closeActivity()">Cerrar</button>
+                </div>
+                <div class="activity-instructions">
+                    Identifica impactos humanos en los ecosistemas:
+                </div>
+                <div style="padding: 2rem;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                        <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 10px;">
+                            <h4 style="color: var(--error-color);">Deforestación</h4>
+                            <p>Pérdida de hábitats</p>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 10px;">
+                            <h4 style="color: var(--warning-color);">Contaminación</h4>
+                            <p>Aire, agua, suelo</p>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 10px;">
+                            <h4 style="color: var(--error-color);">Cambio climático</h4>
+                            <p>Calentamiento global</p>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 10px;">
+                            <h4 style="color: var(--warning-color);">Sobreexplotación</h4>
+                            <p>Pesca, caza excesiva</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="btn-container">
+                    <button class="btn" onclick="completeActivity('ecosystem', 8)">Completar Actividad</button>
+                </div>
+            `;
+        }
+
+        function loadEcoConservation(container) {
+            container.innerHTML = `
+                <div class="activity-header">
+                    <h3>Actividad 10: Conservación</h3>
+                    <button class="btn" onclick="closeActivity()">Cerrar</button>
+                </div>
+                <div class="activity-instructions">
+                    Diseña un plan de conservación:
+                </div>
+                <div style="padding: 2rem;">
+                    <div style="background: rgba(255,255,255,0.05); border-radius: 10px; padding: 2rem;">
+                        <h4 style="color: var(--success-color);">Estrategias de conservación:</h4>
+                        <ul style="margin-left: 2rem; margin-top: 1rem;">
+                            <li>Áreas protegidas</li>
+                            <li>Reforestación</li>
+                            <li>Educación ambiental</li>
+                            <li>Legislación ambiental</li>
+                            <li>Recuperación de especies</li>
+                        </ul>
+                        <textarea style="width: 100%; height: 100px; margin-top: 1rem; padding: 1rem; background: var(--bg-medium); color: var(--text-light); border: 1px solid var(--primary-color); border-radius: 5px;" placeholder="Describe tu plan de conservación..."></textarea>
+                    </div>
+                </div>
+                <div class="btn-container">
+                    <button class="btn" onclick="completeActivity('ecosystem', 9)">Completar Actividad</button>
+                </div>
+            `;
+        }
+
+        // ===== INICIALIZACIÓN =====
+        document.addEventListener('DOMContentLoaded', () => {
+            initApp();
+        });
+    </script>
+</body>
+</html>
